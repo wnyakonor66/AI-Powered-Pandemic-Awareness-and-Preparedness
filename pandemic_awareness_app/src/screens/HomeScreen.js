@@ -1,5 +1,5 @@
 import React from "react";
-import { View, StyleSheet, Text, Image, Button } from "react-native";
+import { View, StyleSheet, Text, Image, TouchableOpacity } from "react-native";
 import { globalStyles } from "../../styles/global";
 
 const HomeScreen = () => {
@@ -18,7 +18,9 @@ const HomeScreen = () => {
             />
           </View>
           <View style={styles.buttonContainer}>
-            <Button title="start" style={styles.startButton} />
+            <TouchableOpacity style={styles.button}>
+              <Text style={styles.buttonText}>Start</Text>
+            </TouchableOpacity>
           </View>
         </View>
       </View>
@@ -31,7 +33,7 @@ const styles = StyleSheet.create({
     fontWeight: 16,
     flex: 1,
     alignItems: "center",
-    marginVertical: 180,
+    marginVertical: 150,
   },
   textHead: {
     fontWeight: "bold",
@@ -61,10 +63,23 @@ const styles = StyleSheet.create({
     marginHorizontal: 32,
   },
   buttonContainer: {
-    marginVertical: 10,
+    marginVertical: 25,
   },
-  startButton: {
-    borderRadius: 20,
+
+  buttonText: {
+    color: "white",
+    textAlign: "center",
+    fontSize: 16,
+  },
+  button: {
+    borderRadius: 10,
+    backgroundColor: "#0867d2",
+    padding: 10,
+    shadowColor: "rgba(7, 0, 0, 0.5)",
+    shadowOffset: { width: 2, height: 5 },
+    shadowRadius: 15,
+    shadowOpacity: 0.5,
+    elevation: 10,
   },
 });
 
