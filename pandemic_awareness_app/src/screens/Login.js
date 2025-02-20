@@ -1,32 +1,65 @@
 import React from "react";
-import { StyleSheet, View, Text, Image, TextInput } from "react-native";
+import {
+  StyleSheet,
+  View,
+  Text,
+  Image,
+  TextInput,
+  TouchableOpacity,
+} from "react-native";
 import { globalStyles } from "../../styles/global";
+import FlatButton from "../shared/button";
+import { useNavigation } from "@react-navigation/native";
 
 export default function Login() {
+  const navigation = useNavigation();
   return (
     <View style={globalStyles.container}>
       <View style={styles.innerContainer}>
-        <View style={styles.imageContainer}>
+        <View style={globalStyles.imageContainer}>
           <Image
             source={require("../../assets/images/tree.jpg")}
-            style={styles.image}
+            style={globalStyles.image}
           />
         </View>
-        <View style={styles.headerContainer}>
-          <Text style={styles.headerText}>Pandemic Guard</Text>
+        <View style={globalStyles.headerContainer}>
+          <Text style={globalStyles.headerText}>Pandemic Guard</Text>
         </View>
 
-        <View style={styles.formArea}>
-          <View style={styles.innerForm}>
-            <View style={styles.items}>
-              <Text style={styles.label}>Email address</Text>
-              <TextInput placeholder="myemail@gmail.com" style={styles.input} />
+        <View style={globalStyles.formArea}>
+          <View style={globalStyles.innerForm}>
+            <View style={globalStyles.items}>
+              <Text style={globalStyles.label}>Email address</Text>
+              <TextInput
+                placeholder="myemail@gmail.com"
+                style={globalStyles.input}
+              />
             </View>
-            <View style={styles.items}>
-              <Text style={styles.label}>Password</Text>
-              <TextInput placeholder="........" style={styles.input} />
+            <View style={globalStyles.items}>
+              <Text style={globalStyles.label}>Password</Text>
+              <TextInput placeholder="........" style={globalStyles.input} />
             </View>
           </View>
+        </View>
+        <View style={styles.forgetContainer}>
+          <TouchableOpacity>
+            <Text style={styles.forgetText}>Forgot password?</Text>
+          </TouchableOpacity>
+        </View>
+        <FlatButton
+          text="Log in"
+          style={{
+            width: "85%",
+            marginVertical: 10,
+          }}
+        />
+
+        <View style={{ flexDirection: "row", alignItems: "center" }}>
+          <Text>Don't have an account? {""}</Text>
+
+          <TouchableOpacity onPress={() => navigation.navigate("SignUp")}>
+            <Text style={{ fontWeight: "bold" }}>Sign Up</Text>
+          </TouchableOpacity>
         </View>
       </View>
     </View>
@@ -38,63 +71,14 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  imageContainer: {
-    width: 200,
-    height: 200,
-  },
-  image: {
-    width: 200,
-    height: 190,
-    objectFit: "cover",
-  },
-  headerContainer: {
+
+  forgetContainer: {
+    padding: 2,
     width: "100%",
-    minHeight: 35,
-    alignItems: "center",
-    borderColor: "red",
-    borderWidth: 2,
-  },
-  headerText: {
-    fontFamily: "nunito-regular",
-    fontSize: 30,
-    fontWeight: "bold",
+    alignItems: "flex-end",
   },
 
-  formArea: {
-    width: "100%",
-    marginVertical: 10,
-    borderColor: "green",
-    borderWidth: 2,
-    minHeight: 200,
-    padding: 10,
-  },
-
-  innerForm: {
-    width: 330,
-    // borderColor: "yellow",
-    borderWidth: 1,
-    paddingVertical: 1,
-    paddingHorizontal: 5,
-    height: 200,
-  },
-
-  items: {
-    width: 300,
-    borderColor: "red",
-    // borderWidth: 2,
-    paddingVertical: 5,
-    paddingHorizontal: 8,
-    justifyContent: "flex-start",
-  },
-
-  input: {
-    borderWidth: 1,
-    backgroundColor: "#ffffff",
-    borderRadius: 10,
-  },
-
-  label: {
-    fontFamily: "nunito-light",
-    marginVertical: 5,
+  forgetText: {
+    marginHorizontal: 38,
   },
 });

@@ -5,11 +5,12 @@ export default function FlatButton({
   onPress,
   backgroundColor = "#0867d2",
   color = "white",
+  style,
 }) {
   return (
     <View style={styles.buttonContainer}>
       <TouchableOpacity
-        style={[styles.button, { backgroundColor }]}
+        style={[styles.button, { backgroundColor }, style]}
         onPress={onPress}
       >
         <Text style={[styles.buttonText, { color }]}>{text}</Text>
@@ -21,6 +22,8 @@ export default function FlatButton({
 const styles = StyleSheet.create({
   buttonContainer: {
     marginVertical: 15,
+    width: "100%",
+    alignItems: "center",
   },
 
   buttonText: {
@@ -35,5 +38,6 @@ const styles = StyleSheet.create({
     shadowRadius: 15,
     shadowOpacity: 0.5,
     elevation: 10,
+    width: "100%",
   },
 });
