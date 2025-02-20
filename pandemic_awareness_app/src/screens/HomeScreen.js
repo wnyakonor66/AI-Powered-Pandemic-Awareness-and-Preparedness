@@ -1,8 +1,11 @@
 import React from "react";
-import { View, StyleSheet, Text, Image, TouchableOpacity } from "react-native";
+import { View, StyleSheet, Text, Image } from "react-native";
 import { globalStyles } from "../../styles/global";
+import FlatButton from "../shared/button";
+import { useNavigation } from "@react-navigation/native";
 
 const HomeScreen = () => {
+  const navigation = useNavigation();
   return (
     <View style={globalStyles.container}>
       <View style={styles.textHeader}>
@@ -17,11 +20,16 @@ const HomeScreen = () => {
               style={styles.image}
             />
           </View>
-          <View style={styles.buttonContainer}>
-            <TouchableOpacity style={styles.button}>
-              <Text style={styles.buttonText}>Start</Text>
-            </TouchableOpacity>
-          </View>
+          <FlatButton
+            text="Sign In"
+            onPress={() => navigation.navigate("LogIn")}
+          />
+          <FlatButton
+            text="Create account"
+            backgroundColor="#ffffff"
+            color="#000000"
+            onPress={() => navigation.navigate("SignUp")}
+          />
         </View>
       </View>
     </View>
