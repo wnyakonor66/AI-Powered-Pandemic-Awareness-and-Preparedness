@@ -10,10 +10,7 @@ load_dotenv()
 
 router = APIRouter()
 
-
-
 ADMIN_EMAIL = os.getenv("ADMIN_EMAIL")
-
 
 @router.post("/signup")
 async def signup(user: UserSignUpSchema):    
@@ -25,7 +22,7 @@ async def signup(user: UserSignUpSchema):
     hashed_password = hash_password(user.password)
     user_dict = user.model_dump()
     user_dict["password"] = hashed_password
-    user_dict["role"] = "admin" if user.email == ADMIN_EMAIL else "role"
+    user_dict["role"] = "admin" if user.email == ADMIN_EMAIL else "user"
     
     result = await users_collection.insert_one(user_dict)
     print(f"User {user.email} signed successfully with role {user_dict['role']}")
