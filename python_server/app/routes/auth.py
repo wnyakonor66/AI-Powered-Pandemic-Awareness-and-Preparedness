@@ -1,6 +1,6 @@
 from fastapi import FastAPI, APIRouter, HTTPException
 from app.config.database import users_collection
-from app.utils.hash import verify_password, hash_password
+from app.utils.hash import verify_password, hash_password, create_access_token
 from bson import ObjectId
 from app.schemas.user import UserLoginSchema, UserSignUpSchema
 
@@ -27,5 +27,7 @@ async def login(user: UserLoginSchema):
     if not existing_user or not verify_password(user.password, existing_user["password"]):
         print("Invalid email and password")
         raise HTTPException(status_code=401, detail="Invalid email and password")
-    print("login successful")
-    return {"message": "login successfully"}
+    
+    token = create_access_token({"sub": existing_user["email"]})
+    print("token generated")
+    return {"access_token": token, "token_type": "bearer"}
