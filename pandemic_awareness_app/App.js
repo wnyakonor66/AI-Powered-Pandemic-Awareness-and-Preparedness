@@ -4,7 +4,7 @@ import * as Font from "expo-font";
 import { useState, useEffect } from "react";
 import * as SplashScreen from "expo-splash-screen";
 import { NavigationContainer } from "@react-navigation/native";
-import HomeStack from "./src/routes/HomeStack";
+import AppNavigator from "./src/routes/AppNavigator";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -32,7 +32,7 @@ export default function App() {
 
   return (
     <NavigationContainer>
-      <HomeStack />
+      <AppNavigator />
     </NavigationContainer>
   );
 }
