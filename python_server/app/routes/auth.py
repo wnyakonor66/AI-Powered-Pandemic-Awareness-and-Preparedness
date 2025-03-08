@@ -1,3 +1,4 @@
+#authenticate routes
 from fastapi import FastAPI, APIRouter, HTTPException
 from app.config.database import users_collection
 from app.utils.hash import verify_password, hash_password, create_access_token
@@ -25,8 +26,24 @@ async def signup(user: UserSignUpSchema):
     user_dict["role"] = "admin" if user.email == ADMIN_EMAIL else "user"
     
     result = await users_collection.insert_one(user_dict)
+    user_id = str(result.inserted_id)
+    
+    token_data = {
+        "sub": user.email,
+        "role": user_dict["role"]
+    }
+    token = create_access_token(token_data)
     print(f"User {user.email} signed successfully with role {user_dict['role']}")
-    return {"message": "user created successfully", "userid": str(result.inserted_id)}
+    return {
+        "message": "User created successfully",
+        "userid": user_id,
+        "role": user_dict["role"],
+        "access_token": token,
+        "token_type": "bearer"
+    }
+    
+    # return {"message": "user created successfully", "userid": user_id}
+
 
 @router.post("/login")
 async def login(user: UserLoginSchema):

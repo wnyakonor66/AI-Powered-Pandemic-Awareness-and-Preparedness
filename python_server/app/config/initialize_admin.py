@@ -1,3 +1,4 @@
+#initial credential for the admin
 from app.config.database import users_collection
 from app.utils.hash import hash_password
 import os
