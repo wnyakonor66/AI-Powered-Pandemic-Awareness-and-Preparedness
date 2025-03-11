@@ -1,3 +1,4 @@
+//login screen
 import React, { useState } from "react";
 import {
   StyleSheet,
@@ -12,6 +13,7 @@ import { globalStyles } from "../../styles/global";
 import FlatButton from "../shared/button";
 import { useNavigation } from "@react-navigation/native";
 import { saveToken, getUserDetails } from "../shared/auth";
+import { jwtDecode } from "jwt-decode";
 
 export default function Login() {
   const navigation = useNavigation();
@@ -21,33 +23,54 @@ export default function Login() {
 
   const handleLogin = async () => {
     console.log("Login button pressed");
+
     if (!email || !password) {
-      Alert.alert("Error", "Please Enter both email and password");
+      Alert.alert("Error", "Please enter both email and password");
       return;
     }
+
     setLoading(true);
     try {
-      const response = await fetch("http://100.112.17.49:8000/auth/login", {
+      const response = await fetch("http://192.168.137.1:8000/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
       });
+
       const data = await response.json();
-      console.log("API Response:", data); // Debugging
+      console.log("API Response:", JSON.stringify(data, null, 2)); // Debugging
 
       if (!response.ok) throw new Error(data.detail || "Login failed");
-      await saveToken(data.token);
+
+      // Check if token exists
+      if (!data.access_token) {
+        throw new Error("Authentication failed: No token received.");
+      }
+
+      // Decode the token to extract the role
+      const decoded = jwtDecode(data.access_token);
+      console.log("Decoded Token:", decoded);
+
+      const userRole = decoded.role || "user"; // Default to "user" if undefined
+      console.log("Extracted Role:", userRole);
+
+      // Save the token and role
+      await saveToken(data.access_token, userRole);
+      console.log("Saved Token:", data.access_token);
+      console.log("Saved Role:", userRole);
+
+      // Fetch user details from the token
       const userDetails = await getUserDetails();
+      console.log("User Role:", userDetails?.role);
 
-      console.log("User Role:", userDetails?.role); // Debugging
-
+      // Navigate without back navigation
       if (userDetails?.role === "admin") {
         navigation.replace("AdminScreen");
       } else {
         navigation.replace("UserScreen");
       }
     } catch (error) {
-      console.error("Login Error:", error); // Debugging
+      console.error("Login Error:", error.message);
       Alert.alert("Login failed", error.message);
     } finally {
       setLoading(false);

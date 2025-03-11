@@ -5,6 +5,7 @@ import {
   Image,
   TextInput,
   TouchableOpacity,
+  ActivityIndicator,
 } from "react-native";
 import { globalStyles } from "../../styles/global";
 import FlatButton from "../shared/button";
@@ -12,40 +13,64 @@ import { useNavigation } from "@react-navigation/native";
 import { saveToken } from "../shared/auth";
 import { useState } from "react";
 import { Alert } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function SignUp() {
   const navigation = useNavigation();
-  const [email, setEmail] = useState(null);
-  const [password, setPassword] = useState(null);
-  const [username, setUsername] = useState(null);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [username, setUsername] = useState("");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const handleSignUp = async () => {
     if (!username || !email || !password) {
       Alert.alert("Error", "All fields are required!");
+      return;
     }
     setLoading(true);
+    setError("");
 
     try {
-      const response = await fetch("http://100.112.17.49:8000/auth/signup", {
+      const response = await fetch("http://192.168.137.1:8000/auth/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, email, password }),
       });
 
       const data = await response.json();
-      if (!response.ok) throw new Error(data.detail || "Signup failed");
-      await saveToken(data.access_token);
+      console.log("signup response:", data);
+
+      if (!response.ok) {
+        if (Array.isArray(data.detail)) {
+          setError(data.detail.map((err) => err.msg).join("\n"));
+        } else {
+          setError(data.detail || "Signup failed");
+        }
+        return;
+      }
+
+      // Save token and role in AsyncStorage
+      if (data.access_token) {
+        await AsyncStorage.setItem("authToken", data.access_token);
+      }
+      if (data.role) {
+        await AsyncStorage.setItem("userRole", data.role);
+      } else {
+        console.warn("User role is undefined, not saving.");
+      }
 
       Alert.alert("Success", "Account created successfully!");
 
+      // Ensure role-based navigation
       if (data.role === "admin") {
-        navigation.navigate("AdminScreen");
+        navigation.replace("AdminScreen");
       } else {
-        navigation.navigate("UserScreen");
+        navigation.replace("UserScreen");
       }
     } catch (error) {
-      Alert.alert("Signup Failed", error.message);
+      console.log("Signup Failed", error);
+      setError("Network error. Check your connection.");
     } finally {
       setLoading(false);
     }
@@ -98,12 +123,24 @@ export default function SignUp() {
           </View>
         </View>
 
+        {loading && (
+          <ActivityIndicator
+            size="large"
+            color="blue"
+            style={{ marginBottom: 10 }}
+          />
+        )}
+
         <FlatButton
           text={loading ? "Registering..." : "Register"}
           style={{ width: "85%", marginVertical: 10 }}
           onPress={handleSignUp}
           disabled={loading}
         />
+
+        {error ? (
+          <Text style={{ color: "red", marginBottom: 10 }}>{error}</Text>
+        ) : null}
 
         <View style={{ flexDirection: "row" }}>
           <Text>Already have an account? </Text>

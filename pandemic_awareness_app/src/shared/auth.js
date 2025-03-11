@@ -1,14 +1,19 @@
 //token storage and role fetching
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import jwtDecode from "jwt-decode";
+import { jwtDecode } from "jwt-decode";
 
 //save the token and role after login
 export const saveToken = async (token, role) => {
   try {
     await AsyncStorage.setItem("authToken", token);
-    await AsyncStorage.setItem("userRole", role);
+
+    if (role) {
+      await AsyncStorage.setItem("userRole", role);
+    } else {
+      console.warn("User role is undefined, not saving.");
+    }
   } catch (error) {
-    console.log("Error saving token:", error);
+    console.error("Error saving token:", error);
   }
 };
 

@@ -7,6 +7,7 @@ import AdminScreen from "../screens/AdminScreen";
 import UserScreen from "../screens/UserScreen";
 import * as Splashscreen from "expo-splash-screen";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { jwtDecode } from "jwt-decode";
 
 const stack = createNativeStackNavigator();
 
@@ -21,13 +22,24 @@ export default function AppNavigator() {
         const token = await AsyncStorage.getItem("authToken");
 
         if (token) {
-          const role = await AsyncStorage.getItem("userRole");
-          setInitialRoute(role === "admin" ? "AdminScreen" : "UserScreen");
+          const decodedToken = jwtDecode(token);
+          const currentTime = Math.floor(Date.now() / 1000);
+
+          if (decodedToken.exp < currentTime) {
+            //token is expired remove the token,userrole and return to home
+            await AsyncStorage.removeItem("authToken");
+            await AsyncStorage.removeItem("userRole");
+            setInitialRoute("Home");
+          } else {
+            const role = await AsyncStorage.getItem("userRole");
+            setInitialRoute(role === "admin" ? "AdminScreen" : "UserScreen");
+          }
         } else {
           setInitialRoute("Home");
         }
       } catch (error) {
         console.error("Unable to load auth", error);
+        setInitialRoute("Home");
       } finally {
         await Splashscreen.hideAsync();
       }
