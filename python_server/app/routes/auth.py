@@ -26,6 +26,7 @@ async def signup(user: UserSignUpSchema):
     user_dict["role"] = "admin" if user.email == ADMIN_EMAIL else "user"
     
     result = await users_collection.insert_one(user_dict)
+    print(f"User {user.email} signed successfully with role {user_dict['role']}")
     user_id = str(result.inserted_id)
     
     token_data = {
@@ -33,7 +34,7 @@ async def signup(user: UserSignUpSchema):
         "role": user_dict["role"]
     }
     token = create_access_token(token_data)
-    print(f"User {user.email} signed successfully with role {user_dict['role']}")
+    
     return {
         "message": "User created successfully",
         "userid": user_id,
