@@ -14,6 +14,7 @@ import FlatButton from "../shared/button";
 import { useNavigation } from "@react-navigation/native";
 import { saveToken, getUserDetails } from "../shared/auth";
 import { jwtDecode } from "jwt-decode";
+import { API_URL } from "@env";
 
 export default function Login() {
   const navigation = useNavigation();
@@ -31,7 +32,7 @@ export default function Login() {
 
     setLoading(true);
     try {
-      const response = await fetch("http://192.168.137.1:8000/auth/login", {
+      const response = await fetch(`${API_URL}/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),

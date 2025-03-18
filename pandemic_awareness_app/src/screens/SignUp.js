@@ -14,6 +14,7 @@ import { saveToken } from "../shared/auth";
 import { useState } from "react";
 import { Alert } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { API_URL } from "@env";
 
 export default function SignUp() {
   const navigation = useNavigation();
@@ -32,7 +33,7 @@ export default function SignUp() {
     setError("");
 
     try {
-      const response = await fetch("http://192.168.137.1:8000/auth/signup", {
+      const response = await fetch(`${API_URL}/auth/signup`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, email, password }),

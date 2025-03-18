@@ -1,11 +1,71 @@
-//User Dashboard
-import React from "react";
-import { View, Text, StyleSheet } from "react-native";
+import React, { useState, useEffect } from "react";
+import { View, Text, StyleSheet, Alert, Button, FlatList } from "react-native";
+import RNPickerSelect from "react-native-picker-select";
+import { API_URL } from "@env";
 
 export default function UserScreen() {
+  const [symptoms, setSymptoms] = useState([]);
+  const [selectedSymptoms, setSelectedSymptoms] = useState([]);
+
+  // Fetch symptoms from backend
+  useEffect(() => {
+    fetch(`${API_URL}/symptoms`)
+      .then((response) => response.json())
+      .then((data) => {
+        console.log("Symptoms API Response:", data);
+        setSymptoms(data.symptoms || []);
+      })
+      .catch((error) => console.error("Error fetching symptoms:", error));
+  }, []);
+
+  //Add a selected symptom
+  const handleAddSymptom = (value) => {
+    if (value && !selectedSymptoms.includes(value)) {
+      setSelectedSymptoms([...selectedSymptoms, value]);
+    }
+  };
+
+  //Remove selected symptoms
+  const handleRemoveSymptom = (value) => {
+    setSelectedSymptoms(
+      selectedSymptoms.filter((symptom) => symptom !== value)
+    );
+  };
+
+  // Send selected symptoms to backend
+  const handlePredict = () => {
+    fetch(`${API_URL}/predict`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ symptoms: selectedSymptoms }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        console.log("Prediction Response:", data);
+        Alert.alert("Prediction Result", data.prediction || "No result");
+      })
+      .catch((error) => console.error("Error making prediction:", error));
+  };
+
   return (
     <View style={styles.container}>
-      <Text>Welcome to User Screen!</Text>
+      <Text>Select symptoms</Text>
+      <RNPickerSelect
+        onValueChange={handleAddSymptom}
+        items={symptoms.map((s) => ({ label: s.name, value: s.id }))}
+        placeholder={{ label: "Select a symptom...", value: null }}
+      />
+      <FlatList
+        data={selectedSymptoms}
+        keyExtractor={(item) => item.toString()}
+        renderItem={({ item }) => (
+          <View style={styles.selectedItem}>
+            <Text>{symptoms.find((s) => s.id === item)?.name}</Text>
+            <Button title="Remove" onPress={() => handleRemoveSymptom(item)} />
+          </View>
+        )}
+      />
+      <Button title="Analyze Symptoms" onPress={handlePredict} />
     </View>
   );
 }
@@ -15,5 +75,15 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+    padding: 20,
+  },
+  selectedItem: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: "#ccc",
+    width: "100%",
   },
 });
