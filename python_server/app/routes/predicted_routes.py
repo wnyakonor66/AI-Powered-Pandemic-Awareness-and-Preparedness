@@ -3,18 +3,39 @@ import joblib
 import numpy as np
 from app.schemas.predicts_schema import SymptomsInput
 from app.utils.model_loader import load_model
+from app.routes.symptoms_routes import symptoms_list
+
 
 router = APIRouter()
 
 model = load_model()
 
+
+print("Model type:", type(model))
+
 @router.post("/predict")
 async def predict(data: SymptomsInput):
     try:
-        symptoms_array = np.array(data.symptoms).reshape(1,-1)
+        print("Model type:", type(model))
+
+        #mapping the selected id symtoms to the names
+        selected_symptoms_names = []
+        for s in symptoms_list:
+            if s["id"] in data.symptoms:
+                selected_symptoms_names.append(s["name"])
+            
+        #a binary vector for the selected symptom
+        input_data = []
+        for symptom in symptoms_list:
+            if symptom["name"] in selected_symptoms_names:
+                input_data.append(1)
+            else:
+                input_data.append(0)
+              
+        
+        symptoms_array = np.array(input_data).reshape(1,-1)
         prediction = model.predict(symptoms_array)[0]
-        return {"prediction:", prediction}
+        return {"prediction": prediction}
     except Exception as e:
-        raise HTTPException(status_code=403, detail="failed to predict")
-    
+        raise HTTPException(status_code=500, detail=str(e))
     
