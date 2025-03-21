@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, Alert, Button, FlatList } from "react-native";
 import RNPickerSelect from "react-native-picker-select";
 import { API_URL } from "@env";
 import * as Location from "expo-location";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function UserScreen() {
   const [symptoms, setSymptoms] = useState([]);
@@ -34,13 +35,39 @@ export default function UserScreen() {
     }
   };
 
+  const sendUserLocation = async (latitude, longitude) => {
+    const token = await AsyncStorage.getItem("authToken");
+    if (!token) {
+      console.error("Auth token not found");
+      return;
+    }
+    console.log("Auth Token:", token);
+    try {
+      const response = await fetch(`${API_URL}/store-location`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ latitude: latitude, longitude: longitude }),
+      });
+
+      const data = await response.json();
+      console.log("location stored:", data);
+    } catch (error) {
+      console.error("Error", "failed to send location");
+    }
+  };
+
   const getUserLocation = async () => {
     try {
       const loc = await Location.getCurrentPositionAsync({});
-      setLocation({
+      const userLocation = {
         latitude: loc.coords.latitude,
         longitude: loc.coords.longitude,
-      });
+      };
+      setLocation(userLocation);
+      sendUserLocation(userLocation.latitude, userLocation.longitude);
     } catch (error) {
       Alert.alert("Error", "Could not fetch location");
     }
