@@ -30,6 +30,7 @@ async def signup(user: UserSignUpSchema):
     user_id = str(result.inserted_id)
     
     token_data = {
+        "id": user_id,
         "sub": user.email,
         "role": user_dict["role"]
     }
@@ -53,7 +54,9 @@ async def login(user: UserLoginSchema):
         print("Invalid email and password")
         raise HTTPException(status_code=401, detail="Invalid email and password")
     
+    
     token_data = {
+        "id": str(existing_user["_id"]),
         "sub": existing_user["email"],
         "role": existing_user["role"]
     }

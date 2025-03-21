@@ -27,12 +27,17 @@ def create_access_token(data: dict):
     to_encode = data.copy()
     expire = datetime.now(timezone.utc) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     to_encode.update({"exp": expire})
+    
+    if "id" not in to_encode:
+        ValueError("UserId is required in the token payload")
+        
     token = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return token
 
 def decode_access_token(token: str):
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        print(f"Decoded Token: {payload}") 
         return payload
     except jwt.ExpiredSignatureError:
         return None
@@ -40,9 +45,16 @@ def decode_access_token(token: str):
         return None
     
 async def get_current_user(token: str = Depends(Oauth2_scheme)):
+    print(f"Received Token: {token}") 
     payload = decode_access_token(token)
     
     if payload is None:
         raise HTTPException(status_code=401, detail="Invalid or expired token")
+    
+    print(f"Decoded Token Data: {payload}")  
+
+    if "id" not in payload:
+        raise HTTPException(status_code=400, detail="User ID is missing from token")
+
     return payload
         
