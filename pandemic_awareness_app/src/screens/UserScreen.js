@@ -2,10 +2,12 @@ import React, { useState, useEffect } from "react";
 import { View, Text, StyleSheet, Alert, Button, FlatList } from "react-native";
 import RNPickerSelect from "react-native-picker-select";
 import { API_URL } from "@env";
+import * as Location from "expo-location";
 
 export default function UserScreen() {
   const [symptoms, setSymptoms] = useState([]);
   const [selectedSymptoms, setSelectedSymptoms] = useState([]);
+  const [location, setLocation] = useState(null);
 
   // Fetch symptoms from backend
   useEffect(() => {
@@ -16,7 +18,33 @@ export default function UserScreen() {
         setSymptoms(data.symptoms || []);
       })
       .catch((error) => console.error("Error fetching symptoms:", error));
+
+    requestLocationPermission();
   }, []);
+
+  const requestLocationPermission = async () => {
+    const { status } = await Location.requestForegroundPermissionsAsync();
+    if (status === "granted") {
+      getUserLocation();
+    } else {
+      Alert.alert(
+        "Location Permission Denied",
+        "Enable location in settings for outbreak detection"
+      );
+    }
+  };
+
+  const getUserLocation = async () => {
+    try {
+      const loc = await Location.getCurrentPositionAsync({});
+      setLocation({
+        latitude: loc.coords.latitude,
+        longitude: loc.coords.longitude,
+      });
+    } catch (error) {
+      Alert.alert("Error", "Could not fetch location");
+    }
+  };
 
   //Add a selected symptom
   const handleAddSymptom = (value) => {
@@ -37,7 +65,11 @@ export default function UserScreen() {
     fetch(`${API_URL}/predict`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ symptoms: selectedSymptoms }),
+      body: JSON.stringify({
+        symptoms: selectedSymptoms,
+        latitude: location.latitude,
+        longitude: location.longitude,
+      }),
     })
       .then((response) => response.json())
       .then((data) => {
@@ -65,6 +97,13 @@ export default function UserScreen() {
           </View>
         )}
       />
+      {location ? (
+        <Text>
+          latitude: {location.latitude}, longitude: {location.longitude}
+        </Text>
+      ) : (
+        <Text>Fetching location...</Text>
+      )}
       <Button title="Analyze Symptoms" onPress={handlePredict} />
     </View>
   );
