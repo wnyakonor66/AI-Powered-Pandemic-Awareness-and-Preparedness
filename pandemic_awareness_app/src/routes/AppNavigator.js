@@ -8,6 +8,7 @@ import UserScreen from "../screens/UserScreen";
 import * as Splashscreen from "expo-splash-screen";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { jwtDecode } from "jwt-decode";
+import AdminTabNavigator from "./AdminTabNavigator";
 
 const stack = createNativeStackNavigator();
 
@@ -58,7 +59,7 @@ export default function AppNavigator() {
       <stack.Screen name="LogIn" component={Login} />
       <stack.Screen name="SignUp" component={SignUp} />
       <stack.Screen name="UserScreen" component={UserScreen} />
-      <stack.Screen name="AdminScreen" component={AdminScreen} />
+      <stack.Screen name="AdminScreen" component={AdminTabNavigator} />
     </stack.Navigator>
   );
 }

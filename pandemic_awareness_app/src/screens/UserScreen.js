@@ -35,13 +35,14 @@ export default function UserScreen() {
     }
   };
 
-  const sendUserLocation = async (latitude, longitude) => {
+  const sendUserLocation = async (latitude, longitude, predictedDisease) => {
     const token = await AsyncStorage.getItem("authToken");
     if (!token) {
       console.error("Auth token not found");
       return;
     }
     console.log("Auth Token:", token);
+
     try {
       const response = await fetch(`${API_URL}/store-location`, {
         method: "POST",
@@ -49,11 +50,20 @@ export default function UserScreen() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ latitude: latitude, longitude: longitude }),
+        body: JSON.stringify({
+          latitude: latitude,
+          longitude: longitude,
+          predicted_disease: predictedDisease,
+        }),
       });
 
       const data = await response.json();
       console.log("location stored:", data);
+      console.log("Sending location with disease:", {
+        latitude,
+        longitude,
+        predicted_disease: predictedDisease,
+      });
     } catch (error) {
       console.error("Error", "failed to send location");
     }
@@ -67,7 +77,7 @@ export default function UserScreen() {
         longitude: loc.coords.longitude,
       };
       setLocation(userLocation);
-      sendUserLocation(userLocation.latitude, userLocation.longitude);
+      // sendUserLocation(userLocation.latitude, userLocation.longitude);
     } catch (error) {
       Alert.alert("Error", "Could not fetch location");
     }
@@ -89,6 +99,10 @@ export default function UserScreen() {
 
   // Send selected symptoms to backend
   const handlePredict = () => {
+    if (!location) {
+      Alert.alert("location data is missing");
+      return;
+    }
     fetch(`${API_URL}/predict`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -102,6 +116,11 @@ export default function UserScreen() {
       .then((data) => {
         console.log("Prediction Response:", data);
         Alert.alert("Prediction Result", data.prediction || "No result");
+        sendUserLocation(
+          location.latitude,
+          location.longitude,
+          data.prediction
+        );
       })
       .catch((error) => console.error("Error making prediction:", error));
   };

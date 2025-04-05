@@ -6,6 +6,7 @@
     "orientation": "portrait",
     "icon": "",
     "userInterfaceStyle": "light",
+    "permissions": ["location"],
     "newArchEnabled": true,
     "splash": {
       "resizeMode": "contain",
@@ -17,6 +18,14 @@
     "android": {
       "package": "com.anonymous.pandemic_awareness_app"
     },
-    "plugins": ["expo-font"]
+    "plugins": [
+      "expo-font",
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Allow this app to access your location."
+        }
+      ]
+    ]
   }
 }
