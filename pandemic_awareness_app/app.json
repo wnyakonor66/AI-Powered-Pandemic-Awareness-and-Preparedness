@@ -16,7 +16,11 @@
       "supportsTablet": true
     },
     "android": {
-      "package": "com.anonymous.pandemic_awareness_app"
+      "package": "com.anonymous.pandemic_awareness_app",
+      "permissions": [
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION"
+      ]
     },
     "plugins": [
       "expo-font",
@@ -26,6 +30,11 @@
           "locationAlwaysAndWhenInUsePermission": "Allow this app to access your location."
         }
       ]
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "d6c87370-9baf-4f29-93cf-f877e5a43fa4"
+      }
+    }
   }
 }

@@ -1,9 +1,10 @@
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
+import { globalStyles } from "../../styles/global";
 
 const Location = () => {
   return (
-    <View>
+    <View style={globalStyles.container}>
       <Text>Location</Text>
     </View>
   );

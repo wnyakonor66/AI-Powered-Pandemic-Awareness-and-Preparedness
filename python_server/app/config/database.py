@@ -11,5 +11,6 @@ client = AsyncIOMotorClient(MONGO_URI, tls=True)
 database = client.get_database(DATABASE_NAME)
 users_collection = database.get_collection("users")
 location_collection = database.get_collection("location")
+outbreak_collection = database.get_collection("outbreak")
 
 

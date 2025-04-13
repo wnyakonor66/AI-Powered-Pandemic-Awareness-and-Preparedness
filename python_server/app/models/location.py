@@ -3,6 +3,7 @@ from typing import Optional
 
 class Location(BaseModel):
     id: Optional[str] = Field(default=None, alias="_id")
-    latitude: float
     longitude: float
+    latitude: float
     timestamp: Optional[str] = None
+    predicted_disease: str

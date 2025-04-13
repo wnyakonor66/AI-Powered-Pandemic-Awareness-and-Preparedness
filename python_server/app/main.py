@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from app.routes import auth, predicted_routes, symptoms_routes, location_routes
+from app.routes import auth, predicted_routes, symptoms_routes, location_routes,outbreak_routes
 
 
 
@@ -14,5 +14,7 @@ app.include_router(auth.router, prefix="/auth", tags=["Authentication"])
 app.include_router(predicted_routes.router, tags=["Prediction"])
 app.include_router(symptoms_routes.router, prefix="/symptoms", tags=["Symptoms"])
 app.include_router(location_routes.router, tags=["Location"])
+app.include_router(outbreak_routes.router, tags=["Outbreak"])
+
 
 
