@@ -7,3 +7,4 @@ class Location(BaseModel):
     latitude: float
     timestamp: Optional[str] = None
     predicted_disease: str
+    case_count: Optional[int] = 1 
