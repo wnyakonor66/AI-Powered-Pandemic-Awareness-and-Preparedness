@@ -7,7 +7,7 @@ import AdminScreen from "../screens/AdminScreen";
 
 const Tab = createBottomTabNavigator();
 
-const AdminTabNavigator = () => {
+export default function AdminTabNavigator() {
   return (
     <Tab.Navigator
       initialRouteName="Dashboard"
@@ -45,6 +45,4 @@ const AdminTabNavigator = () => {
       <Tab.Screen name="Settings" component={Settings} />
     </Tab.Navigator>
   );
-};
-
-export default AdminTabNavigator;
+}

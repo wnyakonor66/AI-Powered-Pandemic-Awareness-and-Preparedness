@@ -32,6 +32,8 @@ export const getUserDetails = async () => {
     return { email: decoded.sub, role: decoded.role };
   } catch (error) {
     console.log("Can't decode token, invalid token:", error);
+    await AsyncStorage.removeItem("authToken");
+    await AsyncStorage.removeItem("userRole");
     return null;
   }
 };

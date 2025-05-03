@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Text,
   View,
@@ -8,23 +8,22 @@ import {
   Dimensions,
   ScrollView,
 } from "react-native";
-import MapView, { Marker } from "react-native-maps"; // Use Marker instead of custom View for easier handling
+import MapView, { PROVIDER_GOOGLE } from "react-native-maps";
 import { API_URL } from "@env";
 import { globalStyles } from "../../styles/global";
 import Ionicons from "@expo/vector-icons/Ionicons";
 
-// Define a threshold distance (in km) to detect nearby outbreaks
 const THRESHOLD_DISTANCE = 50; // 50 km
-
 const { height } = Dimensions.get("window");
 
 const AdminScreen = () => {
   const [loading, setLoading] = useState(true);
-  const [outbreak, setOutbreak] = useState([]);
+  const [outbreaks, setOutbreak] = useState([]);
+  const mapRef = useRef(null);
 
-  // Helper function to calculate distance using the Haversine formula
+  // Haversine formula to calculate distance between two coordinates
   const haversineDistance = (lat1, lon1, lat2, lon2) => {
-    const R = 6371; // Radius of the Earth in km
+    const R = 6371; // Earth radius in km
     const dLat = ((lat2 - lat1) * Math.PI) / 180;
     const dLon = ((lon2 - lon1) * Math.PI) / 180;
     const a =
@@ -34,33 +33,92 @@ const AdminScreen = () => {
         Math.sin(dLon / 2) *
         Math.sin(dLon / 2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    const distance = R * c; // Distance in km
-    return distance;
+    return R * c;
   };
 
-  // Function to check if any outbreak is within the threshold
+  // Checks if any outbreak is within 50km of the admin
   const checkOutbreakThreshold = (latitude, longitude) => {
-    return outbreak.some((item) => {
+    return outbreaks.some((item) => {
       const distance = haversineDistance(
         latitude,
         longitude,
         item.latitude,
         item.longitude
       );
-      return distance <= THRESHOLD_DISTANCE; // Check if within threshold distance
+      return distance <= THRESHOLD_DISTANCE;
     });
+  };
+
+  const reverseGeocode = async (latitude, longitude) => {
+    const url = `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json&addressdetails=1&limit=1`;
+
+    try {
+      const response = await fetch(url, {
+        headers: {
+          "User-Agent": "pandemic-awareness-app/1.0 nyakonor@example.com",
+          Accept: "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch geocoding data");
+      }
+
+      const data = await response.json();
+
+      if (data && data.address) {
+        const {
+          city,
+          town,
+          village,
+          hamlet,
+          suburb,
+          district,
+          state,
+          county,
+          country,
+        } = data.address;
+
+        let locationName =
+          city ||
+          town ||
+          village ||
+          hamlet ||
+          suburb ||
+          district ||
+          state ||
+          county ||
+          country ||
+          "Unknown Location";
+
+        return locationName;
+      }
+    } catch (error) {
+      console.error("Geocoding error:", error);
+      return "Unknown Location";
+    }
   };
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         const response = await fetch(`${API_URL}/outbreaks`);
-        if (!response.ok) {
-          throw new Error("Failed to fetch outbreaks");
-        }
-        const data = await response.json();
-        console.log("Outbreak data:", data);
-        setOutbreak(data);
+        if (!response.ok) throw new Error("Failed to fetch outbreaks");
+
+        const rawData = await response.json();
+
+        // Enhance each outbreak with readable location
+        const enhancedData = await Promise.all(
+          rawData.map(async (outbreak) => {
+            const locationName = await reverseGeocode(
+              outbreak.latitude,
+              outbreak.longitude
+            );
+            return { ...outbreak, location: locationName };
+          })
+        );
+
+        setOutbreak(enhancedData);
       } catch (error) {
         Alert.alert("Error", "Failed to load outbreak data");
         console.error("Error fetching outbreaks:", error);
@@ -76,9 +134,8 @@ const AdminScreen = () => {
     return <ActivityIndicator size="large" style={styles.loader} />;
   }
 
-  // Example: Check for outbreaks within a specific area (your admin's location for example)
-  const adminLatitude = 5.6037; // Replace with actual latitude
-  const adminLongitude = -0.187; // Replace with actual longitude
+  const adminLatitude = 5.6037;
+  const adminLongitude = -0.187;
   const isOutbreakNear = checkOutbreakThreshold(adminLatitude, adminLongitude);
 
   return (
@@ -97,7 +154,7 @@ const AdminScreen = () => {
             />
             <StatCard
               title="Affected Locations"
-              count={outbreak.length}
+              count={outbreaks.length}
               iconName="location-outline"
               iconColor="#4682B4"
             />
@@ -115,19 +172,37 @@ const AdminScreen = () => {
           <View style={styles.mapContainer}>
             <MapView
               style={styles.map}
+              provider={PROVIDER_GOOGLE}
               initialRegion={{
-                latitude: outbreak.length > 0 ? outbreak[0].latitude : 37.78825,
-                longitude:
-                  outbreak.length > 0 ? outbreak[0].longitude : -122.4324,
-                latitudeDelta: 0.5,
-                longitudeDelta: 0.5,
+                latitude: 7.9465,
+                longitude: -1.0232,
+                latitudeDelta: 6,
+                longitudeDelta: 6,
               }}
-            ></MapView>
+              showsUserLocation={false}
+              showsPointsOfInterest={false}
+              showsTraffic={false}
+              toolbarEnabled={false}
+            />
           </View>
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Outbreak Near You </Text>
+          <Text style={styles.sectionTitle}>Outbreak Details</Text>
+          {outbreaks.map((outbreak, index) => (
+            <View key={index} style={styles.outbreakItem}>
+              <Text style={styles.location}>{outbreak.location}</Text>
+              <Text>Disease: {outbreak.predicted_disease}</Text>
+              <Text>Cases: {outbreak.case_count}</Text>
+              <Text>
+                Lat: {outbreak.latitude}, Lon: {outbreak.longitude}
+              </Text>
+            </View>
+          ))}
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Outbreak Near You</Text>
           <Text>
             {isOutbreakNear
               ? "Yes, there's an outbreak near you!"
@@ -212,6 +287,16 @@ const styles = StyleSheet.create({
   },
   map: {
     ...StyleSheet.absoluteFillObject,
+  },
+  outbreakItem: {
+    marginBottom: 12,
+    padding: 10,
+    backgroundColor: "#f2f2f2",
+    borderRadius: 8,
+  },
+  location: {
+    fontWeight: "bold",
+    marginBottom: 4,
   },
   loader: {
     flex: 1,
