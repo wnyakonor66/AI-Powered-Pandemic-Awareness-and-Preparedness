@@ -13,7 +13,7 @@ def serialize_outbreak(outbreak):
         "id": str(outbreak["_id"]),  # Convert ObjectId to string
         "longitude": outbreak["longitude"],
         "latitude": outbreak["latitude"],
-        "timestamp": outbreak.get("timestamp"),
+        "timestamp": outbreak.get("timestamp").isoformat() if outbreak.get("timestamp") else None,
         "predicted_disease": outbreak["predicted_disease"],
         "case_count": outbreak.get("case_count", 1)
 

@@ -7,11 +7,18 @@ import {
   Alert,
   Dimensions,
   ScrollView,
+  TouchableOpacity,
 } from "react-native";
 import MapView, { PROVIDER_GOOGLE } from "react-native-maps";
 import { API_URL } from "@env";
 import { globalStyles } from "../../styles/global";
 import Ionicons from "@expo/vector-icons/Ionicons";
+import Animated, {
+  withTiming,
+  withRepeat,
+  useSharedValue,
+  useAnimatedStyle,
+} from "react-native-reanimated";
 
 const THRESHOLD_DISTANCE = 50; // 50 km
 const { height } = Dimensions.get("window");
@@ -20,6 +27,18 @@ const AdminScreen = () => {
   const [loading, setLoading] = useState(true);
   const [outbreaks, setOutbreak] = useState([]);
   const mapRef = useRef(null);
+  const [diseaseTypeCount, setDiseaseTypeCount] = useState(0);
+  const [reportedCaseCount, setReportedCaseCount] = useState(0);
+  const rotation = useSharedValue(0);
+  const animatedRefreshStyle = useAnimatedStyle(() => {
+    return {
+      transform: [
+        {
+          rotate: `${rotation.value}deg`,
+        },
+      ],
+    };
+  });
 
   // Haversine formula to calculate distance between two coordinates
   const haversineDistance = (lat1, lon1, lat2, lon2) => {
@@ -99,34 +118,43 @@ const AdminScreen = () => {
     }
   };
 
+  const fetchData = async () => {
+    try {
+      const response = await fetch(`${API_URL}/outbreaks`);
+      if (!response.ok) throw new Error("Failed to fetch outbreaks");
+
+      const rawData = await response.json();
+
+      // Enhance each outbreak with readable location
+      const enhancedData = await Promise.all(
+        rawData.map(async (outbreak) => {
+          const locationName = await reverseGeocode(
+            outbreak.latitude,
+            outbreak.longitude
+          );
+          return { ...outbreak, location: locationName };
+        })
+      );
+
+      setOutbreak(enhancedData);
+      const uniqueDiseases = new Set(
+        enhancedData.map((item) => item.predicted_disease)
+      );
+      setDiseaseTypeCount(uniqueDiseases.size);
+      const totalCases = enhancedData.reduce(
+        (sum, item) => sum + item.case_count,
+        0
+      );
+      setReportedCaseCount(totalCases);
+    } catch (error) {
+      Alert.alert("Error", "Failed to load outbreak data");
+      console.error("Error fetching outbreaks:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await fetch(`${API_URL}/outbreaks`);
-        if (!response.ok) throw new Error("Failed to fetch outbreaks");
-
-        const rawData = await response.json();
-
-        // Enhance each outbreak with readable location
-        const enhancedData = await Promise.all(
-          rawData.map(async (outbreak) => {
-            const locationName = await reverseGeocode(
-              outbreak.latitude,
-              outbreak.longitude
-            );
-            return { ...outbreak, location: locationName };
-          })
-        );
-
-        setOutbreak(enhancedData);
-      } catch (error) {
-        Alert.alert("Error", "Failed to load outbreak data");
-        console.error("Error fetching outbreaks:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchData();
   }, []);
 
@@ -141,14 +169,42 @@ const AdminScreen = () => {
   return (
     <ScrollView style={globalStyles.container}>
       <View style={styles.innerContainer}>
-        <Text style={styles.header}>Admin Dashboard</Text>
+        <View style={styles.headerContainer}>
+          <Text style={styles.header}>Admin Dashboard</Text>
+
+          <TouchableOpacity
+            onPress={() => {
+              rotation.value = withRepeat(
+                withTiming(360, { duration: 1000 }),
+                -1, // infinite loop
+                false
+              );
+
+              setLoading(true);
+              fetchData().finally(() => {
+                rotation.value = 0; // Stop rotation
+                setLoading(false);
+              });
+            }}
+            disabled={loading}
+            style={styles.refreshButton}
+          >
+            {loading ? (
+              <ActivityIndicator size="small" color="#0000ff" />
+            ) : (
+              <Animated.View style={animatedRefreshStyle}>
+                <Ionicons name="refresh" size={25} color="#000" />
+              </Animated.View>
+            )}
+          </TouchableOpacity>
+        </View>
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Overview</Text>
           <View style={styles.statsContainer}>
             <StatCard
               title="Reported Cases"
-              count={213}
+              count={reportedCaseCount}
               iconName="alert-circle-outline"
               iconColor="#FF6347"
             />
@@ -160,7 +216,7 @@ const AdminScreen = () => {
             />
             <StatCard
               title="Disease Types"
-              count={5}
+              count={diseaseTypeCount}
               iconName="medkit-outline"
               iconColor="#32CD32"
             />
@@ -225,6 +281,12 @@ const StatCard = ({ title, count, iconName, iconColor }) => (
 const styles = StyleSheet.create({
   innerContainer: {
     padding: 16,
+  },
+  headerContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 16,
   },
   header: {
     fontSize: 28,
@@ -302,6 +364,16 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+  },
+  refreshButton: {
+    padding: 10,
+    borderRadius: 50,
+    backgroundColor: "#f2f2f2",
+    elevation: 2,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
   },
 });
 
