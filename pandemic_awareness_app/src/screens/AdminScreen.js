@@ -19,6 +19,7 @@ import Animated, {
   useSharedValue,
   useAnimatedStyle,
 } from "react-native-reanimated";
+import { Picker } from "@react-native-picker/picker";
 
 const THRESHOLD_DISTANCE = 50; // 50 km
 const { height } = Dimensions.get("window");
@@ -39,6 +40,10 @@ const AdminScreen = () => {
       ],
     };
   });
+
+  const [filteredCases, setFilteredCases] = useState([]);
+  const [selectedDisease, setSelectedDisease] = useState(null);
+  const [selectedLocation, setSelectedLocation] = useState(null);
 
   // Haversine formula to calculate distance between two coordinates
   const haversineDistance = (lat1, lon1, lat2, lon2) => {
@@ -137,6 +142,8 @@ const AdminScreen = () => {
       );
 
       setOutbreak(enhancedData);
+      setFilteredCases(enhancedData);
+
       const uniqueDiseases = new Set(
         enhancedData.map((item) => item.predicted_disease)
       );
@@ -165,6 +172,20 @@ const AdminScreen = () => {
   const adminLatitude = 5.6037;
   const adminLongitude = -0.187;
   const isOutbreakNear = checkOutbreakThreshold(adminLatitude, adminLongitude);
+
+  const applyFilters = () => {
+    let result = outbreaks;
+    if (selectedDisease) {
+      result = result.filter(
+        (item) => item.predicted_disease === selectedDisease
+      );
+    }
+    if (selectedLocation) {
+      result = result.filter((item) => item.location === selectedLocation);
+    }
+
+    setFilteredCases(result);
+  };
 
   return (
     <ScrollView style={globalStyles.container}>
@@ -220,6 +241,52 @@ const AdminScreen = () => {
               iconName="medkit-outline"
               iconColor="#32CD32"
             />
+          </View>
+        </View>
+
+        <View style={styles.filterCard}>
+          <Text style={styles.filterHeader}>Filter Options</Text>
+
+          <View style={styles.filterGroup}>
+            <Text style={styles.filterLabel}>Disease</Text>
+            <View style={styles.pickerWrapper}>
+              <Picker
+                selectedValue={selectedDisease}
+                onValueChange={(value) => {
+                  setSelectedDisease(value);
+                  applyFilters();
+                }}
+                style={styles.picker}
+              >
+                <Picker.Item label="All Diseases" value={null} />
+                {[
+                  ...new Set(outbreaks.map((item) => item.predicted_disease)),
+                ].map((disease, index) => (
+                  <Picker.Item key={index} label={disease} value={disease} />
+                ))}
+              </Picker>
+            </View>
+          </View>
+
+          <View style={styles.filterGroup}>
+            <Text style={styles.filterLabel}>Location</Text>
+            <View style={styles.pickerWrapper}>
+              <Picker
+                selectedValue={selectedLocation}
+                onValueChange={(value) => {
+                  setSelectedLocation(value);
+                  applyFilters();
+                }}
+                style={styles.picker}
+              >
+                <Picker.Item label="All Locations" value={null} />
+                {[...new Set(outbreaks.map((item) => item.location))].map(
+                  (loc, index) => (
+                    <Picker.Item key={index} label={loc} value={loc} />
+                  )
+                )}
+              </Picker>
+            </View>
           </View>
         </View>
 
@@ -374,6 +441,47 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
     shadowRadius: 2,
+  },
+  filterCard: {
+    backgroundColor: "#fff",
+    padding: 16,
+    borderRadius: 12,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 4,
+    marginBottom: 24,
+  },
+
+  filterHeader: {
+    fontSize: 18,
+    fontWeight: "700",
+    marginBottom: 12,
+    color: "#333",
+  },
+
+  filterGroup: {
+    marginBottom: 16,
+  },
+
+  filterLabel: {
+    fontSize: 14,
+    fontWeight: "600",
+    marginBottom: 4,
+    color: "#555",
+  },
+
+  pickerWrapper: {
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 8,
+    overflow: "hidden",
+  },
+
+  picker: {
+    width: "100%",
+    height: 49,
   },
 });
 
