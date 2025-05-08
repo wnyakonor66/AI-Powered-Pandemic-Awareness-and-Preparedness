@@ -254,7 +254,11 @@ const AdminScreen = () => {
                 selectedValue={selectedDisease}
                 onValueChange={(value) => {
                   setSelectedDisease(value);
-                  applyFilters();
+                  if (value === null && selectedDisease === null) {
+                    setFilteredCases(outbreaks);
+                  } else {
+                    applyFilters();
+                  }
                 }}
                 style={styles.picker}
               >
@@ -275,7 +279,11 @@ const AdminScreen = () => {
                 selectedValue={selectedLocation}
                 onValueChange={(value) => {
                   setSelectedLocation(value);
-                  applyFilters();
+                  if (value === null && selectedLocation === null) {
+                    setFilteredCases(outbreaks);
+                  } else {
+                    applyFilters();
+                  }
                 }}
                 style={styles.picker}
               >
@@ -312,14 +320,14 @@ const AdminScreen = () => {
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Outbreak Details</Text>
-          {outbreaks.map((outbreak, index) => (
+          {filteredCases.map((outbreak, index) => (
             <View key={index} style={styles.outbreakItem}>
               <Text style={styles.location}>{outbreak.location}</Text>
               <Text>Disease: {outbreak.predicted_disease}</Text>
               <Text>Cases: {outbreak.case_count}</Text>
-              <Text>
+              {/* <Text>
                 Lat: {outbreak.latitude}, Lon: {outbreak.longitude}
-              </Text>
+              </Text> */}
             </View>
           ))}
         </View>
