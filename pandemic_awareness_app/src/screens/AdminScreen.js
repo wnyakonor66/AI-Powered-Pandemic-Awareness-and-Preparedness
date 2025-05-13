@@ -21,6 +21,7 @@ import Animated, {
 } from "react-native-reanimated";
 import { Picker } from "@react-native-picker/picker";
 import DailyBarChart from "../component/TrendsChart/DailyBarChart";
+import PieDiseaseChart from "../component/PieDisease";
 
 const THRESHOLD_DISTANCE = 50; // 50 km
 const { height } = Dimensions.get("window");
@@ -333,6 +334,10 @@ const AdminScreen = () => {
           ))}
         </View>
         <DailyBarChart />
+
+        <View>
+          <PieDiseaseChart />
+        </View>
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Outbreak Near You</Text>

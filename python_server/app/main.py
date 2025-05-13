@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from app.routes import auth, predicted_routes, symptoms_routes, location_routes,outbreak_routes, trends_routes
+from app.routes import auth, predicted_routes, symptoms_routes, location_routes,outbreak_routes, trends_routes, disease_pie_routes
 
 
 
@@ -16,3 +16,4 @@ app.include_router(symptoms_routes.router, prefix="/symptoms", tags=["Symptoms"]
 app.include_router(location_routes.router, tags=["Location"])
 app.include_router(outbreak_routes.router, tags=["Outbreak"])
 app.include_router(trends_routes.router, tags=["DailyTrends"])
+app.include_router(disease_pie_routes.router, tags=["TOP 5 Diseases"])
