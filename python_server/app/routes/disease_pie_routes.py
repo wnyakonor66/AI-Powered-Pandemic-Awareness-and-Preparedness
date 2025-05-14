@@ -19,5 +19,5 @@ async def get_disease_pie():
     results = await outbreak_collection.aggregate(pipeline).to_list(length=None)
     if not results:
             raise HTTPException(status_code=404, detail="No data found") 
-    top_diseases = [{"diseaseType": item["_id"], "count": item["count"]} for item in results]
+    top_diseases = [{"diseaseType": item["_id"], "count": item["count"], "latitude": item["latitude"], "longitude": item["longitude"]} for item in results]
     return top_diseases

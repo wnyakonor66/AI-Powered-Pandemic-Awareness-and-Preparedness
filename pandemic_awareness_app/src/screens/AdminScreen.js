@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   Text,
   View,
@@ -8,6 +8,8 @@ import {
   Dimensions,
   ScrollView,
   TouchableOpacity,
+  Modal,
+  FlatList,
 } from "react-native";
 import MapView, { PROVIDER_GOOGLE } from "react-native-maps";
 import { API_URL } from "@env";
@@ -32,6 +34,10 @@ const AdminScreen = () => {
   const mapRef = useRef(null);
   const [diseaseTypeCount, setDiseaseTypeCount] = useState(0);
   const [reportedCaseCount, setReportedCaseCount] = useState(0);
+  const [filteredCases, setFilteredCases] = useState([]);
+  const [selectedDisease, setSelectedDisease] = useState(null);
+  const [selectedLocation, setSelectedLocation] = useState(null);
+  const [selectedSlice, setSelectedSlice] = useState(null);
   const rotation = useSharedValue(0);
   const animatedRefreshStyle = useAnimatedStyle(() => {
     return {
@@ -42,10 +48,6 @@ const AdminScreen = () => {
       ],
     };
   });
-
-  const [filteredCases, setFilteredCases] = useState([]);
-  const [selectedDisease, setSelectedDisease] = useState(null);
-  const [selectedLocation, setSelectedLocation] = useState(null);
 
   // Haversine formula to calculate distance between two coordinates
   const haversineDistance = (lat1, lon1, lat2, lon2) => {
@@ -166,6 +168,25 @@ const AdminScreen = () => {
   useEffect(() => {
     fetchData();
   }, []);
+
+  const pieData = useMemo(() => {
+    const map = {};
+    outbreaks.forEach(({ predicted_disease, location }) => {
+      if (!map[predicted_disease]) {
+        map[predicted_disease] = { count: 0, locations: new Set() };
+      }
+      map[predicted_disease].count++;
+      map[predicted_disease].locations.add(location);
+    });
+    return Object.entries(map)
+      .map(([disease, { count, locations }], i) => ({
+        name: disease,
+        count,
+        locations: Array.from(locations),
+      }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 5);
+  }, [outbreaks]);
 
   if (loading) {
     return <ActivityIndicator size="large" style={styles.loader} />;
@@ -336,8 +357,38 @@ const AdminScreen = () => {
         <DailyBarChart />
 
         <View>
-          <PieDiseaseChart />
+          <PieDiseaseChart
+            data={pieData}
+            onSlicePress={(slice) => setSelectedSlice(slice)}
+          />
         </View>
+        <Modal
+          visible={!!selectedSlice}
+          transparent
+          animationType="slide"
+          onRequestClose={() => setSelectedSlice(null)}
+        >
+          <View style={styles.modalBackdrop}>
+            <View style={styles.modalContent}>
+              <Text style={styles.modalTitle}>{selectedSlice?.name}</Text>
+              <Text>Total cases: {selectedSlice?.count}</Text>
+              <Text style={{ marginTop: 8, fontWeight: "600" }}>
+                Locations:
+              </Text>
+              <FlatList
+                data={selectedSlice?.locations}
+                keyExtractor={(l) => l}
+                renderItem={({ item }) => <Text>• {item}</Text>}
+              />
+              <TouchableOpacity
+                onPress={() => setSelectedSlice(null)}
+                style={styles.modalClose}
+              >
+                <Text style={{ color: "#fff" }}>Close</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Outbreak Near You</Text>
@@ -497,6 +548,26 @@ const styles = StyleSheet.create({
   picker: {
     width: "100%",
     height: 49,
+  },
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "center",
+    padding: 20,
+  },
+  modalContent: {
+    backgroundColor: "#fff",
+    borderRadius: 8,
+    padding: 16,
+    maxHeight: height * 0.6,
+  },
+  modalTitle: { fontSize: 20, fontWeight: "700", marginBottom: 8 },
+  modalClose: {
+    marginTop: 12,
+    backgroundColor: "#007AFF",
+    padding: 10,
+    borderRadius: 6,
+    alignSelf: "center",
   },
 });
 
