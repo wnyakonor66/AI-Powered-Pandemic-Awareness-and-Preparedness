@@ -394,7 +394,7 @@ const AdminScreen = () => {
           <Text style={styles.sectionTitle}>Outbreak Near You</Text>
           <Text>
             {isOutbreakNear
-              ? "Yes, there's an outbreak near you!"
+              ? "Yes, there's an outbreak near!"
               : "No outbreaks nearby"}
           </Text>
         </View>

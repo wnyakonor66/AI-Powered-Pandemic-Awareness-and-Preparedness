@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, StyleSheet, Alert, Button, FlatList } from "react-native";
-import RNPickerSelect from "react-native-picker-select";
+import { View, Text, StyleSheet, Alert, Button } from "react-native";
 import { API_URL } from "@env";
 import * as Location from "expo-location";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import SymptomSelector from "../component/SymptomSelector";
+import SelectedSymptomsList from "../component/SelectedSymptomsList";
 
 export default function UserScreen() {
   const [symptoms, setSymptoms] = useState([]);
@@ -128,20 +129,11 @@ export default function UserScreen() {
   return (
     <View style={styles.container}>
       <Text>Select symptoms</Text>
-      <RNPickerSelect
-        onValueChange={handleAddSymptom}
-        items={symptoms.map((s) => ({ label: s.name, value: s.id }))}
-        placeholder={{ label: "Select a symptom...", value: null }}
-      />
-      <FlatList
-        data={selectedSymptoms}
-        keyExtractor={(item) => item.toString()}
-        renderItem={({ item }) => (
-          <View style={styles.selectedItem}>
-            <Text>{symptoms.find((s) => s.id === item)?.name}</Text>
-            <Button title="Remove" onPress={() => handleRemoveSymptom(item)} />
-          </View>
-        )}
+      <SymptomSelector symptoms={symptoms} onAddSymptom={handleAddSymptom} />
+      <SelectedSymptomsList
+        selectedSymptoms={selectedSymptoms}
+        symptoms={symptoms}
+        onRemove={handleRemoveSymptom}
       />
       {location ? (
         <Text>
@@ -161,14 +153,5 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     padding: 20,
-  },
-  selectedItem: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    padding: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: "#ccc",
-    width: "100%",
   },
 });
