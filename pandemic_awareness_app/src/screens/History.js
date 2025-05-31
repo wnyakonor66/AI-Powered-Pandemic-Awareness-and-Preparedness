@@ -17,9 +17,12 @@ export default function History() {
   const isFocused = useIsFocused();
 
   useEffect(() => {
-    if (!isFocused) {
+    if (isFocused) {
       fetchDiseaseHistory();
-    } // Only fetch when screen is focused
+    }else{
+        setDiseaseHistory([]);
+        setLoading(true);
+    }
   }, [isFocused]);
 
   const fetchDiseaseHistory = async () => {
@@ -65,12 +68,18 @@ export default function History() {
     </View>
   );
 
+  if (loading) {
+    return <ActivityIndicator size="large" color="#2c3e50"/>;
+  }
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>History</Text>
-      {loading ? (
-        <ActivityIndicator size="large" color="#2c3e50" />
-      ) : (
+         {diseaseHistory.length === 0 ? (
+             <Text style={{ fontSize: 16, textAlign: 'center', marginTop: 20 }}>
+                No history yet
+        </Text>
+      ) : (  
         <FlatList
           data={diseaseHistory}
           keyExtractor={(item, index) => index.toString()}
