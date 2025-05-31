@@ -6,7 +6,7 @@ export default function Updates() {
     <View style={styles.container}>
       <Text style={styles.title}>Updates</Text>
       <Text style={styles.description}>
-        This feature is under development. Stay tuned for updates!
+        This feature is under development. Stay tuned for more updates!
       </Text>
     </View>
   );
