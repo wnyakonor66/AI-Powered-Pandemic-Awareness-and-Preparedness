@@ -32,13 +32,15 @@ async def signup(user: UserSignUpSchema):
     token_data = {
         "id": user_id,
         "sub": user.email,
-        "role": user_dict["role"]
+        "role": user_dict["role"],
+        "username": user.username
     }
     token = create_access_token(token_data)
     
     return {
         "message": "User created successfully",
         "userid": user_id,
+        "username": user.username,
         "role": user_dict["role"],
         "access_token": token,
         "token_type": "bearer"
@@ -58,8 +60,12 @@ async def login(user: UserLoginSchema):
     token_data = {
         "id": str(existing_user["_id"]),
         "sub": existing_user["email"],
-        "role": existing_user["role"]
+        "role": existing_user["role"],
+        "username": existing_user["username"]
+        
     }
     token = create_access_token(token_data)
-    print(f"Token generated for {existing_user['email']} with role: {existing_user['role']}")    
+    # print(f"Token generated for {existing_user['email']} with role: {existing_user['role']}")    
+    print(f"Token generated for {existing_user['email']} with role: {existing_user['role']} and username: {existing_user['username']}")
+
     return {"access_token": token, "token_type": "bearer"}

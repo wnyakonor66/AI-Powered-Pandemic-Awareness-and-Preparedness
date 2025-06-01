@@ -8,3 +8,4 @@ class Location(BaseModel):
     timestamp: Optional[str] = None
     predicted_disease: str
     case_count: Optional[int] = 1 
+    location_name: Optional[str] = "Unknown Location"

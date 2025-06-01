@@ -3,6 +3,7 @@ from app.config.database import location_collection, outbreak_collection
 from datetime import datetime, timezone
 from app.models.location import Location
 from app.utils.hash import get_current_user
+from app.utils.geo import reverse_geocode
 
 router = APIRouter()
 
@@ -14,6 +15,7 @@ async def store_location(data: Location, current_user: dict = Depends(get_curren
         raise HTTPException(status_code=400, detail="User ID missing in token")
 
     try:
+        location_name = await reverse_geocode(data.latitude, data.longitude)
         # 1. Check if same user has already submitted a report at this location
         existing_report = await location_collection.find_one({
             "user_id": user_id,
@@ -63,7 +65,8 @@ async def store_location(data: Location, current_user: dict = Depends(get_curren
                 "longitude": data.longitude,
                 "latitude": data.latitude,
                 "timestamp": datetime.now(timezone.utc),
-                "predicted_disease": data.predicted_disease
+                "predicted_disease": data.predicted_disease,
+                "location_name": location_name
             }
             await location_collection.insert_one(location_data)
 
@@ -85,7 +88,8 @@ async def store_location(data: Location, current_user: dict = Depends(get_curren
                     "latitude": data.latitude,
                     "timestamp": datetime.now(timezone.utc),
                     "predicted_disease": data.predicted_disease,
-                    "case_count": 1
+                    "case_count": 1,
+                    "location_name": location_name 
                 }
                 await outbreak_collection.insert_one(outbreak_data)
 

@@ -15,7 +15,8 @@ def serialize_outbreak(outbreak):
         "latitude": outbreak["latitude"],
         "timestamp": outbreak.get("timestamp").isoformat() if outbreak.get("timestamp") else None,
         "predicted_disease": outbreak["predicted_disease"],
-        "case_count": outbreak.get("case_count", 1)
+        "case_count": outbreak.get("case_count", 1),
+        "location_name": outbreak.get("location_name", "Unknown")
 
     }
 
