@@ -219,13 +219,14 @@ export default function UserScreen() {
         onClearAll={() => setSelectedSymptoms([])}
       />
 
-      {/* <Button title="Analyze Symptoms" onPress={handlePredict} /> */}
-      <Button
-        title="Analyze Symptoms"
-        onPress={handlePredict}
-        disabled={isPredictDisabled}
-        color={isPredictDisabled ? "#ccc" : "#4CAF50"} // gray if disabled, green if active
-      />
+      <View style={styles.button}>
+        <Button
+          title="Analyze Symptoms"
+          onPress={handlePredict}
+          disabled={isPredictDisabled}
+          color={isPredictDisabled ? "#ccc" : "#4CAF50"} // gray if disabled, green if active
+        />
+      </View>
 
       {predictionResult && (
         <View style={styles.resultCard}>
@@ -274,5 +275,11 @@ const styles = StyleSheet.create({
   locationText: {
     fontSize: 16,
     fontWeight: "500",
+  },
+  button: {
+    borderRadius: 10,
+    padding: 10,
+    marginBottom: 6,
+    width: "100%",
   },
 });
