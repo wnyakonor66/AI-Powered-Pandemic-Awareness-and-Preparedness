@@ -113,7 +113,7 @@ export default function UserProfile() {
           secureTextEntry
         />
         <TouchableOpacity style={styles.button} onPress={updateProfile}>
-          <Text style={styles.bottonText}>Update Profile</Text>
+          <Text style={styles.buttonText}>Update Profile</Text>
         </TouchableOpacity>
       </View>
     </View>

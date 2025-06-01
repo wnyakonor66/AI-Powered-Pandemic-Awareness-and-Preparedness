@@ -3,7 +3,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { jwtDecode } from "jwt-decode";
 
 //save the token and role after login
-export const saveToken = async (token, role) => {
+export const saveToken = async (token, role, username) => {
   try {
     await AsyncStorage.setItem("authToken", token);
 
@@ -14,6 +14,13 @@ export const saveToken = async (token, role) => {
     }
   } catch (error) {
     console.error("Error saving token:", error);
+  }
+
+  // Save username if provided
+  if (username) {
+    await AsyncStorage.setItem("username", username);
+  } else {
+    console.warn("Username is undefined, not saving.");
   }
 };
 
@@ -29,7 +36,16 @@ export const getUserDetails = async () => {
 
   try {
     const decoded = await jwtDecode(token);
-    return { email: decoded.sub, role: decoded.role };
+    console.log("decoded JWT:", decoded);
+    if (decoded.username) {
+      await AsyncStorage.setItem("username", decoded.username);
+    }
+
+    return {
+      email: decoded.sub,
+      role: decoded.role,
+      username: decoded.username || null,
+    };
   } catch (error) {
     console.log("Can't decode token, invalid token:", error);
     await AsyncStorage.removeItem("authToken");
