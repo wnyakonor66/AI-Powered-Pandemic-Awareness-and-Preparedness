@@ -6,6 +6,7 @@ import {
   Alert,
   Button,
   ScrollView,
+  FlatList,
 } from "react-native";
 import { API_URL } from "@env";
 import * as Location from "expo-location";
@@ -13,6 +14,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import SelectedSymptomsList from "../component/SelectedSymptomsList";
 import WelcomeBanner from "../component/WelcomeBanner";
 import SymptomSearchBox from "../component/SymptomSearchBox";
+import HealthTipCard from "../component/HealthTipCard";
 
 export default function UserScreen() {
   const [symptoms, setSymptoms] = useState([]);
@@ -96,7 +98,7 @@ export default function UserScreen() {
       const name = await reverseGeocode(
         userLocation.latitude,
         userLocation.longitude
-      ); // NEW
+      );
       setLocationName(name);
       // sendUserLocation(userLocation.latitude, userLocation.longitude);
     } catch (error) {
@@ -160,7 +162,12 @@ export default function UserScreen() {
       setSelectedSymptoms([...selectedSymptoms, value]);
     }
   };
-
+  // const handleAddSymptom = (value) => {
+  //   // Trim whitespace and check if the value is not empty
+  //   if (value && value.trim() !== "" && !selectedSymptoms.includes(value)) {
+  //     setSelectedSymptoms([...selectedSymptoms, value.trim()]);
+  //   }
+  // };
   // Send selected symptoms to backend
   const handlePredict = () => {
     if (!location) {
@@ -178,9 +185,17 @@ export default function UserScreen() {
     })
       .then((response) => response.json())
       .then((data) => {
-        const result = data.prediction || "No disease detected";
+        const result = {
+          prediction: data.prediction || "No disease detected",
+          disease_precautions: data.disease_precautions || [],
+        };
+        console.log("Prediction Result:", result);
         setPredictionResult(result);
-        sendUserLocation(location.latitude, location.longitude, result);
+        sendUserLocation(
+          location.latitude,
+          location.longitude,
+          result.prediction
+        );
       })
       .catch((error) => console.error("Error making prediction:", error));
   };
@@ -188,52 +203,85 @@ export default function UserScreen() {
   const handleRemoveSymptom = (id) => {
     setSelectedSymptoms((prev) => prev.filter((symptom) => symptom !== id));
   };
+  useEffect(() => {
+    setPredictionResult(null);
+  }, [selectedSymptoms]);
 
   const isPredictDisabled = selectedSymptoms.length === 0;
 
   return (
     <View style={styles.container}>
-      <View style={styles.locationContainer}>
-        <WelcomeBanner />
+      <FlatList
+        data={[{ key: "screen-content" }]}
+        renderItem={() => (
+          <>
+            <View style={styles.locationContainer}>
+              <WelcomeBanner />
 
-        {location ? (
-          <Text style={styles.locationText}>
-            Your Location: {locationName || "Loading..."}
-            {/* {location.latitude}, {location.longitude}) */}
-          </Text>
-        ) : (
-          <Text>Fetching location...</Text>
+              {location ? (
+                <Text style={styles.locationText}>
+                  Your Location: {locationName || "Loading..."}
+                  {/* {location.latitude}, {location.longitude}) */}
+                </Text>
+              ) : (
+                <Text>Fetching location...</Text>
+              )}
+            </View>
+            <Text>Select symptoms</Text>
+            <SymptomSearchBox
+              symptomList={symptoms}
+              onSymptomSelect={handleAddSymptom}
+            />
+            <SelectedSymptomsList
+              symptoms={symptoms}
+              selectedSymptoms={selectedSymptoms}
+              onRemove={handleRemoveSymptom}
+              onClearAll={() => setSelectedSymptoms([])}
+            />
+            <View style={styles.button}>
+              <Button
+                title="Analyze Symptoms"
+                onPress={handlePredict}
+                disabled={isPredictDisabled}
+                color={isPredictDisabled ? "#ccc" : "#4CAF50"} // gray if disabled, green if active
+              />
+            </View>
+            {predictionResult && (
+              <View style={styles.resultCard}>
+                <Text style={styles.resultTitle}>Diagnosis Result</Text>
+                <Text style={styles.diseaseName}>
+                  {predictionResult.prediction}
+                </Text>
+
+                <Text style={styles.precautionTitle}>
+                  🛡️Precautionary Measures
+                </Text>
+                {predictionResult.disease_precautions &&
+                predictionResult.disease_precautions.length > 0 ? (
+                  predictionResult.disease_precautions.map((item, index) => (
+                    <Text key={index} style={styles.precautionItem}>
+                      • {item}
+                    </Text>
+                  ))
+                ) : (
+                  <Text style={styles.noPrecautions}>
+                    No precautions provided.
+                  </Text>
+                )}
+              </View>
+            )}
+          </>
         )}
-      </View>
-
-      <Text>Select symptoms</Text>
-      <SymptomSearchBox
-        symptomList={symptoms}
-        onSymptomSelect={handleAddSymptom}
+        ListFooterComponent={
+          <HealthTipCard
+            title="💡Health Tip Of the Day"
+            description="Wash your hands frequently to reduce infection risk"
+          />
+        }
+        contentContainerStyle={styles.Contentcontainer}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
       />
-
-      <SelectedSymptomsList
-        symptoms={symptoms}
-        selectedSymptoms={selectedSymptoms}
-        onRemove={handleRemoveSymptom}
-        onClearAll={() => setSelectedSymptoms([])}
-      />
-
-      <View style={styles.button}>
-        <Button
-          title="Analyze Symptoms"
-          onPress={handlePredict}
-          disabled={isPredictDisabled}
-          color={isPredictDisabled ? "#ccc" : "#4CAF50"} // gray if disabled, green if active
-        />
-      </View>
-
-      {predictionResult && (
-        <View style={styles.resultCard}>
-          <Text style={styles.resultTitle}>Prediction Result</Text>
-          <Text style={styles.resultText}>{predictionResult}</Text>
-        </View>
-      )}
     </View>
   );
 }
@@ -244,26 +292,57 @@ const styles = StyleSheet.create({
     alignItems: "stretch",
     padding: 20,
     backgroundColor: "#f5f6fa",
+    paddingBottom: 20,
   },
+  Contentcontainer: {
+    paddingBottom: 20,
+    padding: 10,
+  },
+
   resultCard: {
-    marginTop: 20,
-    padding: 5,
-    backgroundColor: "#d0f0c0",
-    borderRadius: 10,
-    borderColor: "#2e7d32",
-    borderWidth: 2,
-    alignItems: "center",
+    marginTop: 15,
+    padding: 20,
+    backgroundColor: "#ffffff",
+    borderRadius: 15,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    elevation: 5,
+    marginVertical: 20,
+    marginBottom: 15,
   },
   resultTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#333",
+    marginBottom: 8,
+  },
+  diseaseName: {
+    fontSize: 20,
+    fontWeight: "700",
+    color: "#e53935",
+    marginBottom: 12,
+    textAlign: "center",
+  },
+  precautionTitle: {
     fontSize: 16,
     fontWeight: "bold",
-    color: "#2e7d32",
+    color: "#444",
     marginBottom: 5,
   },
-  resultText: {
-    fontSize: 18,
-    color: "#1b5e20",
+  precautionItem: {
+    fontSize: 14,
+    color: "#555",
+    paddingLeft: 10,
+    paddingBottom: 4,
   },
+  noPrecautions: {
+    fontSize: 14,
+    fontStyle: "italic",
+    color: "#777",
+  },
+
   locationContainer: {
     alignSelf: "flex-start",
     marginBottom: 20,

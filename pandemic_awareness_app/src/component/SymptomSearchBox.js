@@ -53,6 +53,7 @@ export default function SymptomSearchBox({ symptomList, onSymptomSelect }) {
         onBlur={() => setShowAll(false)}
       />
       <FlatList
+        nestedScrollEnabled={true}
         data={filteredList}
         keyExtractor={(item) => item.id.toString()}
         renderItem={({ item }) => (

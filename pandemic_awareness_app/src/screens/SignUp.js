@@ -46,7 +46,7 @@ export default function SignUp() {
         if (Array.isArray(data.detail)) {
           setError(data.detail.map((err) => err.msg).join("\n"));
         } else {
-          setError(data.detail || "Signup failed");
+          setError(data.detail || "Signup failed try again!");
         }
         return;
       }

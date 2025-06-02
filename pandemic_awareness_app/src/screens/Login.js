@@ -41,7 +41,8 @@ export default function Login() {
       const data = await response.json();
       console.log("API Response:", JSON.stringify(data, null, 2)); // Debugging
 
-      if (!response.ok) throw new Error(data.detail || "Login failed");
+      if (!response.ok)
+        throw new Error(data.detail || "Login failed try again!");
 
       // Check if token exists
       if (!data.access_token) {

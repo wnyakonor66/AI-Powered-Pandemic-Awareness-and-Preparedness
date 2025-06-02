@@ -25,6 +25,7 @@ export default function SelectedSymptomsList({
       ) : (
         <>
           <FlatList
+            scrollEnabled={false}
             data={selectedSymptoms}
             keyExtractor={(item) => item.toString()}
             renderItem={({ item }) => (

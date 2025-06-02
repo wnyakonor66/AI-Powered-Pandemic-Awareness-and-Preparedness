@@ -1,13 +1,17 @@
 import React, { useState, useEffect } from "react";
 import { View, Text, StyleSheet } from "react-native";
 import { getUserDetails } from "../shared/auth";
+import { useIsFocused } from "@react-navigation/native";
 
 export default function WelcomeBanner() {
   const [username, setUsername] = useState("");
+  const isFocused = useIsFocused();
 
   useEffect(() => {
-    fetchUsername();
-  }, []);
+    if (isFocused) {
+      fetchUsername();
+    }
+  }, [isFocused]);
 
   const fetchUsername = async () => {
     try {

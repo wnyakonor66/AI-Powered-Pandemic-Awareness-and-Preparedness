@@ -15,13 +15,14 @@ export default function History() {
   const [diseaseHistory, setDiseaseHistory] = useState([]);
   const [loading, setLoading] = useState(true);
   const isFocused = useIsFocused();
+  const [expandedItem, setExpandedItem] = useState({});
 
   useEffect(() => {
     if (isFocused) {
       fetchDiseaseHistory();
-    }else{
-        setDiseaseHistory([]);
-        setLoading(true);
+    } else {
+      setDiseaseHistory([]);
+      setLoading(true);
     }
   }, [isFocused]);
 
@@ -47,6 +48,7 @@ export default function History() {
       const data = await response.json();
       setDiseaseHistory(data.disease_history || []);
       console.log("Disease History:", data.disease_history);
+      console.log("location_name:", data.location_name);
       console.log("Fetched disease history successfully");
     } catch (error) {
       console.error("Failed to fetch disease history:", error);
@@ -55,31 +57,57 @@ export default function History() {
     }
   };
 
-  const renderItem = ({ item }) => (
-    <View style={styles.card}>
-      <MaterialCommunityIcons name="virus" size={28} color="#e74c3c" />
-      <View style={styles.cardContent}>
-        <Text style={styles.diseaseName}>{item.disease}</Text>
-        <Text style={styles.date}>📅 {new Date(item.date).toDateString()}</Text>
-        <Text style={styles.location}>
-          📍 Lat: {item.latitude}, Lng: {item.longitude}
-        </Text>
+  const renderItem = ({ item, index }) => {
+    console.log("Rendering item:", item);
+    const isExpanded = expandedItem[index] || false;
+    const truncatedLocation =
+      item.location_name && item.location_name.length > 30
+        ? item.location_name.slice(0, 30) + "..."
+        : item.location_name;
+
+    const toggleExpand = () => {
+      setExpandedItem((prev) => ({
+        ...prev,
+        [index]: !prev[index],
+      }));
+    };
+
+    return (
+      <View style={styles.card}>
+        <MaterialCommunityIcons name="virus" size={28} color="#e74c3c" />
+        <View style={styles.cardContent}>
+          <Text style={styles.diseaseName}>{item.disease}</Text>
+          <Text style={styles.date}>
+            📅 {new Date(item.date).toDateString()}
+          </Text>
+          <Text style={styles.location}>
+            📍 Lat: {item.latitude}, Lng: {item.longitude}
+          </Text>
+          <Text style={styles.location}>
+            📍 Location: {isExpanded ? item.location_name : truncatedLocation}
+          </Text>
+          {item.location_name && item.location_name.length > 30 && (
+            <Text style={styles.toggleText} onPress={toggleExpand}>
+              {isExpanded ? "Show Less" : "Show More"}
+            </Text>
+          )}
+        </View>
       </View>
-    </View>
-  );
+    );
+  };
 
   if (loading) {
-    return <ActivityIndicator size="large" color="#2c3e50"/>;
+    return <ActivityIndicator size="large" color="#2c3e50" />;
   }
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>History</Text>
-         {diseaseHistory.length === 0 ? (
-             <Text style={{ fontSize: 16, textAlign: 'center', marginTop: 20 }}>
-                No history yet
+      {diseaseHistory.length === 0 ? (
+        <Text style={{ fontSize: 16, textAlign: "center", marginTop: 20 }}>
+          No history yet
         </Text>
-      ) : (  
+      ) : (
         <FlatList
           data={diseaseHistory}
           keyExtractor={(item, index) => index.toString()}
@@ -114,4 +142,9 @@ const styles = StyleSheet.create({
   diseaseName: { fontSize: 18, fontWeight: "bold", color: "#e74c3c" },
   date: { color: "#555", marginTop: 4 },
   location: { color: "#555", marginTop: 4 },
+  toggleText: {
+    color: "#2980b9",
+    marginTop: 4,
+    fontWeight: "bold",
+  },
 });
