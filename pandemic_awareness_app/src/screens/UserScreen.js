@@ -1,13 +1,5 @@
 import React, { useState, useEffect } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  Alert,
-  Button,
-  ScrollView,
-  FlatList,
-} from "react-native";
+import { View, Text, StyleSheet, Alert, Button, FlatList } from "react-native";
 import { API_URL } from "@env";
 import * as Location from "expo-location";
 import AsyncStorage from "@react-native-async-storage/async-storage";

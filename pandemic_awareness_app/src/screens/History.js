@@ -112,6 +112,7 @@ export default function History() {
           data={diseaseHistory}
           keyExtractor={(item, index) => index.toString()}
           renderItem={renderItem}
+          showsVerticalScrollIndicator={false}
         />
       )}
     </View>

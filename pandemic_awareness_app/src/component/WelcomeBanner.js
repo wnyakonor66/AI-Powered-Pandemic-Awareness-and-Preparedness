@@ -18,6 +18,7 @@ export default function WelcomeBanner() {
       const userDetails = await getUserDetails();
       if (userDetails?.username) {
         setUsername(userDetails.username);
+        console.log("Fetched username:", userDetails.username);
       } else {
         console.warn("Username not found in user details");
       }

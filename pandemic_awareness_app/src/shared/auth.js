@@ -36,15 +36,21 @@ export const getUserDetails = async () => {
 
   try {
     const decoded = await jwtDecode(token);
+    const storedUsername = await AsyncStorage.getItem("username");
+
+    const finalUsername = storedUsername || decoded.username;
+
     console.log("decoded JWT:", decoded);
-    if (decoded.username) {
-      await AsyncStorage.setItem("username", decoded.username);
-    }
+    console.log("Using username:", finalUsername);
+    // if (decoded.username) {
+    //   await AsyncStorage.setItem("username", decoded.username);
+    //   console.log("Username saved to AsyncStorage:", decoded.username);
+    // }
 
     return {
       email: decoded.sub,
       role: decoded.role,
-      username: decoded.username || null,
+      username: finalUsername,
     };
   } catch (error) {
     console.log("Can't decode token, invalid token:", error);

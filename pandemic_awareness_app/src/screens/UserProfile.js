@@ -79,7 +79,11 @@ export default function UserProfile() {
     console.log("Update Profile Response:", result);
     console.log("Update Profile Response Status:", response.status);
     if (response.ok) {
+      await AsyncStorage.setItem("username", username);
+      setPassword("");
+      setEmail("");
       Alert.alert("Success", "Profile Updated Successfully");
+      console.log("new username:", username);
     } else {
       Alert.alert(
         "Error",
