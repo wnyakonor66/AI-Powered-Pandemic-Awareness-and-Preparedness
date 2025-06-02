@@ -4,6 +4,7 @@ import numpy as np
 from app.schemas.predicts_schema import SymptomsInput
 from app.utils.model_loader import load_model
 from app.routes.symptoms_routes import symptoms_list
+from app.utils.precautions import precautions
 
 
 router = APIRouter()
@@ -35,7 +36,11 @@ async def predict(data: SymptomsInput):
         
         symptoms_array = np.array(input_data).reshape(1,-1)
         prediction = model.predict(symptoms_array)[0]
-        return {"prediction": prediction}
+        disease_precautions = precautions.get(prediction.strip(), ["No Precautions found for this disease"])
+        print("Prediction:", prediction)
+        print("Precautions returned:", disease_precautions)
+
+        return {"prediction": prediction, "disease_precautions": disease_precautions}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     

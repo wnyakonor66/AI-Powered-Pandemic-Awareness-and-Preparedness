@@ -28,5 +28,6 @@ async def get_disease_history(current_user: dict = Depends(get_current_user)):
             "date": record.get("timestamp").isoformat() if record.get("timestamp") else None,
             "latitude": record.get("latitude"),
             "longitude": record.get("longitude"),
+            "location_name": record.get("location_name"),
         })
     return {"disease_history": result}
