@@ -61,11 +61,14 @@ async def login(user: UserLoginSchema):
         "id": str(existing_user["_id"]),
         "sub": existing_user["email"],
         "role": existing_user["role"],
-        "username": existing_user["username"]
+        # "username": existing_user["username"] 
+        "username": existing_user.get("username", "")
         
     }
     token = create_access_token(token_data)
     # print(f"Token generated for {existing_user['email']} with role: {existing_user['role']}")    
-    print(f"Token generated for {existing_user['email']} with role: {existing_user['role']} and username: {existing_user['username']}")
+    # print(f"Token generated for {existing_user['email']} with role: {existing_user['role']} and username: {existing_user['username']}")
+    print(f"Token generated for {existing_user['email']} with role: {existing_user['role']}")
+
 
     return {"access_token": token, "token_type": "bearer"}
