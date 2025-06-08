@@ -1,8 +1,37 @@
 import React, { useState } from "react";
-import { View, Text, StyleSheet, Switch, TouchableOpacity } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  Switch,
+  TouchableOpacity,
+  Alert,
+} from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useNavigation } from "@react-navigation/native";
 
 const Settings = () => {
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+  const navigation = useNavigation();
+
+  const handleLogout = async () => {
+    try {
+      await AsyncStorage.removeItem("userToken");
+
+      Alert.alert("Logged Out", "You have been logged out.", [
+        {
+          text: "OK",
+          onPress: () =>
+            navigation.reset({
+              index: 0,
+              routes: [{ name: "Home" }],
+            }),
+        },
+      ]);
+    } catch (error) {
+      console.error("Logout error:", error);
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -20,7 +49,10 @@ const Settings = () => {
         <Text style={styles.buttonText}>Change Password</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity style={[styles.button, { backgroundColor: "red" }]}>
+      <TouchableOpacity
+        style={[styles.button, { backgroundColor: "red" }]}
+        onPress={handleLogout}
+      >
         <Text style={styles.buttonText}>Logout</Text>
       </TouchableOpacity>
     </View>
@@ -47,9 +79,8 @@ const styles = StyleSheet.create({
   button: {
     padding: 15,
     backgroundColor: "#0867d2",
-    borderRadius: 5,
-    marginTop: 10,
     borderRadius: 10,
+    marginTop: 10,
   },
   buttonText: {
     textAlign: "center",

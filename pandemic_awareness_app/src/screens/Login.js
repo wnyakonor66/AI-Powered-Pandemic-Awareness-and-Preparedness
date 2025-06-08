@@ -8,6 +8,12 @@ import {
   TextInput,
   TouchableOpacity,
   Alert,
+  SafeAreaView,
+  StatusBar,
+  KeyboardAvoidingView,
+  Platform,
+  TouchableWithoutFeedback,
+  Keyboard,
 } from "react-native";
 import { globalStyles } from "../../styles/global";
 import FlatButton from "../shared/button";
@@ -15,8 +21,9 @@ import { useNavigation } from "@react-navigation/native";
 import { saveToken, getUserDetails } from "../shared/auth";
 import { jwtDecode } from "jwt-decode";
 import { API_URL } from "@env";
+import { LinearGradient } from "expo-linear-gradient";
 
-export default function Login() {
+const Login = () => {
   const navigation = useNavigation();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -80,83 +87,201 @@ export default function Login() {
   };
 
   return (
-    <View style={globalStyles.container}>
-      <View style={styles.innerContainer}>
-        <View style={globalStyles.imageContainer}>
-          <Image
-            source={require("../../assets/images/tree.jpg")}
-            style={globalStyles.image}
-          />
-        </View>
-        <View style={globalStyles.headerContainer}>
-          <Text style={globalStyles.headerText}>Pandemic Guard</Text>
-        </View>
+    <SafeAreaView style={styles.container}>
+      <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
+      <LinearGradient colors={["#ffffff", "#f8f9fa"]} style={styles.gradient}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          style={styles.keyboardAvoid}
+        >
+          <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+            <View style={styles.content}>
+              <View style={styles.header}>
+                <Image
+                  source={require("../../assets/images/tree.jpg")}
+                  style={styles.logo}
+                  resizeMode="contain"
+                />
+                <Text style={styles.title}>Welcome Back</Text>
+                <Text style={styles.subtitle}>Sign in to continue</Text>
+              </View>
 
-        <View style={globalStyles.formArea}>
-          <View style={globalStyles.innerForm}>
-            <View style={globalStyles.items}>
-              <Text style={globalStyles.label}>Email address</Text>
-              <TextInput
-                placeholder="myemail@gmail.com"
-                style={globalStyles.input}
-                value={email}
-                onChangeText={setEmail}
-                autoCapitalize="none"
-                keyboardType="email-address"
-              />
+              <View style={styles.form}>
+                <View style={styles.inputContainer}>
+                  <Text style={styles.label}>Email</Text>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Enter your email"
+                    placeholderTextColor="rgba(0,0,0,0.4)"
+                    value={email}
+                    onChangeText={setEmail}
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                  />
+                </View>
+
+                <View style={styles.inputContainer}>
+                  <Text style={styles.label}>Password</Text>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Enter your password"
+                    placeholderTextColor="rgba(0,0,0,0.4)"
+                    value={password}
+                    onChangeText={setPassword}
+                    secureTextEntry
+                  />
+                </View>
+
+                <TouchableOpacity style={styles.forgotPassword}>
+                  <Text style={styles.forgotPasswordText}>
+                    Forgot Password?
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[
+                    styles.loginButton,
+                    loading && styles.loginButtonDisabled,
+                  ]}
+                  onPress={handleLogin}
+                  disabled={loading}
+                >
+                  <Text style={styles.loginButtonText}>
+                    {loading ? "Signing in..." : "Sign In"}
+                  </Text>
+                </TouchableOpacity>
+
+                <View style={styles.signupContainer}>
+                  <Text style={styles.signupText}>Don't have an account? </Text>
+                  <TouchableOpacity
+                    onPress={() => navigation.navigate("SignUp")}
+                  >
+                    <Text style={styles.signupLink}>Sign Up</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
             </View>
-            <View style={globalStyles.items}>
-              <Text style={globalStyles.label}>Password</Text>
-              <TextInput
-                placeholder="********"
-                style={globalStyles.input}
-                value={password}
-                onChangeText={setPassword}
-                secureTextEntry
-              />
-            </View>
-          </View>
-        </View>
-        <View style={styles.forgetContainer}>
-          <TouchableOpacity>
-            <Text style={styles.forgetText}>Forgot password?</Text>
-          </TouchableOpacity>
-        </View>
-        <FlatButton
-          text={loading ? "Logging in..." : "Log in"}
-          style={{
-            width: "85%",
-            marginVertical: 10,
-          }}
-          onPress={handleLogin}
-          disabled={loading}
-        />
-
-        <View style={{ flexDirection: "row", alignItems: "center" }}>
-          <Text>Don't have an account? {""}</Text>
-
-          <TouchableOpacity onPress={() => navigation.navigate("SignUp")}>
-            <Text style={{ fontWeight: "bold" }}>Sign Up</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    </View>
+          </TouchableWithoutFeedback>
+        </KeyboardAvoidingView>
+      </LinearGradient>
+    </SafeAreaView>
   );
-}
+};
 
 const styles = StyleSheet.create({
-  innerContainer: {
+  container: {
+    flex: 1,
+    backgroundColor: "#ffffff",
+  },
+  gradient: {
+    flex: 1,
+  },
+  keyboardAvoid: {
+    flex: 1,
+  },
+  content: {
+    flex: 1,
+    padding: 24,
+    justifyContent: "center",
+  },
+  header: {
+    alignItems: "center",
+    marginBottom: 48,
+  },
+  logo: {
+    width: 120,
+    height: 120,
+    marginBottom: 24,
+  },
+  title: {
+    fontSize: 32,
+    fontWeight: "bold",
+    color: "#2c3e50",
+    marginBottom: 8,
+    fontFamily: "nunito-regular",
+  },
+  subtitle: {
+    fontSize: 16,
+    color: "#7f8c8d",
+    fontFamily: "nunito-light",
+  },
+  form: {
+    width: "100%",
+    backgroundColor: "#ffffff",
+    borderRadius: 20,
+    padding: 24,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  inputContainer: {
+    marginBottom: 20,
+  },
+  label: {
+    fontSize: 14,
+    color: "#2c3e50",
+    marginBottom: 8,
+    fontFamily: "nunito-regular",
+    fontWeight: "600",
+  },
+  input: {
+    backgroundColor: "#f8f9fa",
+    borderRadius: 12,
+    padding: 16,
+    color: "#2c3e50",
+    fontSize: 16,
+    borderWidth: 1,
+    borderColor: "#e9ecef",
+    fontFamily: "nunito-regular",
+  },
+  forgotPassword: {
+    alignSelf: "flex-end",
+    marginBottom: 24,
+  },
+  forgotPasswordText: {
+    color: "#3498db",
+    fontSize: 14,
+    fontFamily: "nunito-regular",
+  },
+  loginButton: {
+    backgroundColor: "#3498db",
+    borderRadius: 12,
+    padding: 16,
+    alignItems: "center",
+    marginBottom: 24,
+    elevation: 4,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+  },
+  loginButtonDisabled: {
+    backgroundColor: "#bdc3c7",
+  },
+  loginButtonText: {
+    color: "#ffffff",
+    fontSize: 16,
+    fontWeight: "bold",
+    fontFamily: "nunito-regular",
+  },
+  signupContainer: {
+    flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
   },
-
-  forgetContainer: {
-    padding: 2,
-    width: "100%",
-    alignItems: "flex-end",
+  signupText: {
+    color: "#7f8c8d",
+    fontSize: 14,
+    fontFamily: "nunito-regular",
   },
-
-  forgetText: {
-    marginHorizontal: 38,
+  signupLink: {
+    color: "#3498db",
+    fontSize: 14,
+    fontWeight: "bold",
+    fontFamily: "nunito-regular",
   },
 });
+
+export default Login;

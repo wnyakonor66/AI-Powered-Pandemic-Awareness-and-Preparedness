@@ -61,17 +61,50 @@ export default function AppNavigator() {
   if (!initialRoute) {
     return null;
   }
-  console.log("Login:", Login);
-  console.log("SignUp:", SignUp);
-  console.log("UserScreen:", UserScreen);
-  console.log("AdminTabNavigator:", AdminTabNavigator);
-  console.log("UserTabNavigator:", UserTabNavigator);
 
   return (
-    <Stack.Navigator initialRouteName={initialRoute}>
-      <Stack.Screen name="Home" component={HomeScreen} />
-      <Stack.Screen name="LogIn" component={Login} />
-      <Stack.Screen name="SignUp" component={SignUp} />
+    <Stack.Navigator
+      initialRouteName={initialRoute}
+      screenOptions={{
+        headerShown: false,
+        contentStyle: { backgroundColor: "#1a237e" },
+      }}
+    >
+      <Stack.Screen
+        name="Home"
+        component={HomeScreen}
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="LogIn"
+        component={Login}
+        options={{
+          headerShown: true,
+          headerStyle: {
+            backgroundColor: "#1a237e",
+          },
+          headerTintColor: "#fff",
+          headerTitleStyle: {
+            fontFamily: "nunito-regular",
+          },
+        }}
+      />
+      <Stack.Screen
+        name="SignUp"
+        component={SignUp}
+        options={{
+          headerShown: true,
+          headerStyle: {
+            backgroundColor: "#1a237e",
+          },
+          headerTintColor: "#fff",
+          headerTitleStyle: {
+            fontFamily: "nunito-regular",
+          },
+        }}
+      />
       <Stack.Screen name="UserScreen" component={UserTabNavigator} />
       <Stack.Screen name="AdminScreen" component={AdminTabNavigator} />
     </Stack.Navigator>
