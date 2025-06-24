@@ -1,11 +1,10 @@
-from fastapi import APIRouter,HTTPException
+from fastapi import APIRouter,HTTPException, Depends
 import joblib
 import numpy as np
 from app.schemas.predicts_schema import SymptomsInput
 from app.utils.model_loader import load_model
 from app.routes.symptoms_routes import symptoms_list
 from app.utils.precautions import precautions
-
 
 router = APIRouter()
 
@@ -37,10 +36,25 @@ async def predict(data: SymptomsInput):
         symptoms_array = np.array(input_data).reshape(1,-1)
         prediction = model.predict(symptoms_array)[0]
         disease_precautions = precautions.get(prediction.strip(), ["No Precautions found for this disease"])
+        
+        
         print("Prediction:", prediction)
         print("Precautions returned:", disease_precautions)
+        
+        # user_id = current_user.get("id")
+        # if not user_id:
+        #     raise HTTPException(status_code=400, detail="User ID missing in token")
+        # print(f"User ID in the predicted routes: {user_id}")
+        
+        # age = current_user.get("age")
+        # gender = current_user.get("gender")
+        # if not age or gender is None:
+        #     raise HTTPException(status_code=400, detail="Age and gender missing in token")
+        # print(f"User Age: {age} and gender: {gender}")
 
         return {"prediction": prediction, "disease_precautions": disease_precautions}
+    
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     

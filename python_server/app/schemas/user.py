@@ -8,4 +8,6 @@ class UserSignUpSchema(BaseModel):
     username: str
     email: EmailStr
     password: str
+    age: int
+    gender: str
     

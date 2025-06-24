@@ -1,4 +1,3 @@
-#authenticate routes
 from fastapi import FastAPI, APIRouter, HTTPException
 from app.config.database import users_collection
 from app.utils.hash import verify_password, hash_password, create_access_token
@@ -33,7 +32,10 @@ async def signup(user: UserSignUpSchema):
         "id": user_id,
         "sub": user.email,
         "role": user_dict["role"],
-        "username": user.username
+        "username": user.username,
+        "age": user_dict.get("age", ""),
+        "gender": user_dict.get("gender", "")
+        
     }
     token = create_access_token(token_data)
     
@@ -62,7 +64,9 @@ async def login(user: UserLoginSchema):
         "sub": existing_user["email"],
         "role": existing_user["role"],
         # "username": existing_user["username"] 
-        "username": existing_user.get("username", "")
+        "username": existing_user.get("username", ""),
+        "age": existing_user.get("age", ""),
+        "gender": existing_user.get("gender", "")
         
     }
     token = create_access_token(token_data)

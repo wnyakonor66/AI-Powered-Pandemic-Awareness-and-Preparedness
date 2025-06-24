@@ -9,3 +9,5 @@ class Location(BaseModel):
     predicted_disease: str
     case_count: Optional[int] = 1 
     location_name: Optional[str] = "Unknown Location"
+    age: Optional[int] = None
+    gender: Optional[str] = None

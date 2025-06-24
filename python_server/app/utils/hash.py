@@ -6,7 +6,10 @@ from datetime import datetime,timedelta,timezone
 from fastapi import HTTPException, Depends
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
+from bson import ObjectId
+from app.config.database import users_collection
 
+# Load environment variables from .env file
 load_dotenv()
 
 SECRET_KEY = os.getenv("SECRET_KEY")
@@ -55,6 +58,20 @@ async def get_current_user(token: str = Depends(Oauth2_scheme)):
 
     if "id" not in payload:
         raise HTTPException(status_code=400, detail="User ID is missing from token")
+    
+    
+    user_id = ObjectId(payload["id"])
+    user = await users_collection.find_one({"_id": user_id})
+    
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
 
-    return payload
+    return {
+        "id": str(user["_id"]),
+        "username": user.get("username"),
+        "email": user.get("email"),
+        "age": user.get("age"),
+        "gender": user.get("gender"),
+        "role": user.get("role", "user"),
+    }
         

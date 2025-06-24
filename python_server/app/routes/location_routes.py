@@ -11,8 +11,15 @@ router = APIRouter()
 @router.post("/store-location")
 async def store_location(data: Location, current_user: dict = Depends(get_current_user)):
     user_id = current_user.get("id")
+    user_age = current_user.get("age")
+    user_gender = current_user.get("gender")
     if not user_id:
         raise HTTPException(status_code=400, detail="User ID missing in token")
+    
+    if user_age is None or user_gender is None:
+        raise HTTPException(status_code=400, detail="User age and gender must be provided in token")
+    
+    print(f"Details from token: {user_age}, {user_gender}")
 
     try:
         location_name = await reverse_geocode(data.latitude, data.longitude)
@@ -80,7 +87,14 @@ async def store_location(data: Location, current_user: dict = Depends(get_curren
             if existing_outbreak:
                 await outbreak_collection.update_one(
                     {"_id": existing_outbreak["_id"]},
-                    {"$inc": {"case_count": 1}, "$set": {"timestamp": datetime.now(timezone.utc)}}
+                    {
+                        "$inc": {"case_count": 1}, 
+                        "$set": {
+                            "timestamp": datetime.now(timezone.utc),
+                            "age": user_age,
+                            "gender": user_gender
+                            
+                }}
                 )
             else:
                 outbreak_data = {
@@ -89,7 +103,9 @@ async def store_location(data: Location, current_user: dict = Depends(get_curren
                     "timestamp": datetime.now(timezone.utc),
                     "predicted_disease": data.predicted_disease,
                     "case_count": 1,
-                    "location_name": location_name 
+                    "location_name": location_name,
+                    "age": user_age,
+                    "gender": user_gender
                 }
                 await outbreak_collection.insert_one(outbreak_data)
 
