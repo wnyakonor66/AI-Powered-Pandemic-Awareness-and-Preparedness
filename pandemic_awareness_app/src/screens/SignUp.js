@@ -20,6 +20,8 @@ import { saveToken } from "../shared/auth";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { API_URL } from "@env";
 import { LinearGradient } from "expo-linear-gradient";
+import { Picker } from "@react-native-picker/picker";
+import { registerForPushNotificationsAsync } from "../shared/notifications";
 
 const SignUp = () => {
   const navigation = useNavigation();
@@ -29,6 +31,8 @@ const SignUp = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [age, setAge] = useState("");
+  const [gender, setGender] = useState("");
 
   const handleSignUp = async () => {
     if (!username || !email || !password || !confirmPassword) {
@@ -46,11 +50,13 @@ const SignUp = () => {
       const response = await fetch(`${API_URL}/auth/signup`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, email, password }),
+        body: JSON.stringify({ username, email, password, age, gender }),
       });
 
       const data = await response.json();
       console.log("signup response:", data);
+      console.log("age", age);
+      console.log("gender", gender);
 
       if (!response.ok) {
         if (Array.isArray(data.detail)) {
@@ -65,10 +71,38 @@ const SignUp = () => {
       if (data.access_token) {
         await AsyncStorage.setItem("authToken", data.access_token);
       }
+      console.log("Access token saved:", data.access_token);
+
       if (data.role) {
         await AsyncStorage.setItem("userRole", data.role);
       } else {
         console.warn("User role is undefined, not saving.");
+      }
+
+      const pushToken = await registerForPushNotificationsAsync();
+      console.log("Push token:", pushToken);
+      if (pushToken) {
+        try {
+          const response = await fetch(`${API_URL}/save-push-token`, {
+            method: "PUT",
+            headers: {
+              Authorization: `Bearer ${data.access_token}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ token: pushToken }),
+          });
+          if (!response.ok) {
+            throw new Error("Failed to save push token");
+          }
+          const saveResponse = await response.json();
+          console.log("data acccess token:", data.access_token);
+          console.log("Push token saved successfully:", saveResponse);
+
+          console.log("Pushed token saved to backend");
+          console.log("Push token:", pushToken);
+        } catch (error) {
+          console.log("Error sending push notification to backend", error);
+        }
       }
 
       Alert.alert("Success", "Account created successfully!");
@@ -122,7 +156,6 @@ const SignUp = () => {
                       onChangeText={setUsername}
                     />
                   </View>
-
                   <View style={styles.inputContainer}>
                     <Text style={styles.label}>Email</Text>
                     <TextInput
@@ -135,7 +168,6 @@ const SignUp = () => {
                       autoCapitalize="none"
                     />
                   </View>
-
                   <View style={styles.inputContainer}>
                     <Text style={styles.label}>Password</Text>
                     <TextInput
@@ -147,7 +179,6 @@ const SignUp = () => {
                       secureTextEntry
                     />
                   </View>
-
                   <View style={styles.inputContainer}>
                     <Text style={styles.label}>Confirm Password</Text>
                     <TextInput
@@ -159,7 +190,30 @@ const SignUp = () => {
                       secureTextEntry
                     />
                   </View>
-
+                  <View style={styles.inputContainer}>
+                    <Text style={styles.label}>Age</Text>
+                    <TextInput
+                      style={styles.input}
+                      placeholder="Enter your age"
+                      placeholderTextColor="rgba(0,0,0,0.4)"
+                      keyboardType="numeric"
+                      value={age}
+                      onChangeText={setAge}
+                    />
+                  </View>
+                  <View style={styles.inputContainer}>
+                    <Text style={styles.label}>Gender</Text>
+                    <Picker
+                      selectedValue={gender}
+                      style={styles.inputPicker}
+                      onValueChange={(itemValue) => setGender(itemValue)}
+                    >
+                      <Picker.Item label="Select Gender" value="" />
+                      <Picker.Item label="Male" value="Male" />
+                      <Picker.Item label="Female" value="Female" />
+                      <Picker.Item label="Other" value="Other" />
+                    </Picker>
+                  </View>
                   <TouchableOpacity
                     style={[
                       styles.signupButton,
@@ -172,7 +226,6 @@ const SignUp = () => {
                       {loading ? "Creating Account..." : "Create Account"}
                     </Text>
                   </TouchableOpacity>
-
                   <View style={styles.loginContainer}>
                     <Text style={styles.loginText}>
                       Already have an account?{" "}
@@ -258,6 +311,15 @@ const styles = StyleSheet.create({
     backgroundColor: "#f8f9fa",
     borderRadius: 12,
     padding: 16,
+    color: "#2c3e50",
+    fontSize: 16,
+    borderWidth: 1,
+    borderColor: "#e9ecef",
+    fontFamily: "nunito-regular",
+  },
+  inputPicker: {
+    backgroundColor: "#f8f9fa",
+    borderRadius: 12,
     color: "#2c3e50",
     fontSize: 16,
     borderWidth: 1,

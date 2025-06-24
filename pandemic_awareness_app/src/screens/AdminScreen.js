@@ -38,6 +38,8 @@ const AdminScreen = () => {
   const [selectedDisease, setSelectedDisease] = useState(null);
   const [selectedLocation, setSelectedLocation] = useState(null);
   const [selectedSlice, setSelectedSlice] = useState(null);
+  const [selectedAgeRange, setSelectedAgeRange] = useState(null);
+  const [selectedGender, setSelectedGender] = useState(null);
   const rotation = useSharedValue(0);
   const animatedRefreshStyle = useAnimatedStyle(() => {
     return {
@@ -169,20 +171,61 @@ const AdminScreen = () => {
     fetchData();
   }, []);
 
+  // const pieData = useMemo(() => {
+  //   const map = {};
+  //   outbreaks.forEach(({ predicted_disease, location }) => {
+  //     if (!map[predicted_disease]) {
+  //       map[predicted_disease] = { count: 0, locations: new Set() };
+  //     }
+  //     map[predicted_disease].count++;
+  //     map[predicted_disease].locations.add(location);
+  //   });
+  //   return Object.entries(map)
+  //     .map(([disease, { count, locations }], i) => ({
+  //       name: disease,
+  //       count,
+  //       locations: Array.from(locations),
+  //     }))
+  //     .sort((a, b) => b.count - a.count)
+  //     .slice(0, 5);
+  // }, [outbreaks]);
+
   const pieData = useMemo(() => {
     const map = {};
-    outbreaks.forEach(({ predicted_disease, location }) => {
+    outbreaks.forEach((outbreak) => {
+      const { predicted_disease, location, age, gender } = outbreak;
+
       if (!map[predicted_disease]) {
-        map[predicted_disease] = { count: 0, locations: new Set() };
+        map[predicted_disease] = {
+          count: 0,
+          locations: new Set(),
+          ages: [],
+          genders: {},
+        };
       }
+
       map[predicted_disease].count++;
       map[predicted_disease].locations.add(location);
+
+      // Add age
+      if (typeof age === "number") {
+        map[predicted_disease].ages.push(age);
+      }
+
+      // Add gender count
+      if (gender) {
+        map[predicted_disease].genders[gender] =
+          (map[predicted_disease].genders[gender] || 0) + 1;
+      }
     });
+
     return Object.entries(map)
-      .map(([disease, { count, locations }], i) => ({
+      .map(([disease, { count, locations, ages, genders }]) => ({
         name: disease,
         count,
         locations: Array.from(locations),
+        ages,
+        genders,
       }))
       .sort((a, b) => b.count - a.count)
       .slice(0, 5);
@@ -205,6 +248,16 @@ const AdminScreen = () => {
     }
     if (selectedLocation) {
       result = result.filter((item) => item.location === selectedLocation);
+    }
+    if (selectedGender) {
+      result = result.filter((item) => item.gender === selectedGender);
+    }
+
+    if (selectedAgeRange) {
+      const [minAge, maxAge] = selectedAgeRange.split("-").map(Number);
+      result = result.filter(
+        (item) => item.age >= minAge && item.age <= maxAge
+      );
     }
 
     setFilteredCases(result);
@@ -319,6 +372,46 @@ const AdminScreen = () => {
               </Picker>
             </View>
           </View>
+
+          <View style={styles.filterGroup}>
+            <Text style={styles.filterLabel}>Gender</Text>
+            <View style={styles.pickerWrapper}>
+              <Picker
+                selectedValue={selectedGender}
+                onValueChange={(value) => {
+                  setSelectedGender(value);
+                  applyFilters();
+                }}
+                style={styles.picker}
+              >
+                <Picker.Item label="All Genders" value={null} />
+                <Picker.Item label="Male" value="Male" />
+                <Picker.Item label="Female" value="Female" />
+                <Picker.Item label="Other" value="Other" />
+              </Picker>
+            </View>
+          </View>
+
+          <View style={styles.filterGroup}>
+            <Text style={styles.filterLabel}>Age Range</Text>
+            <View style={styles.pickerWrapper}>
+              <Picker
+                selectedValue={selectedAgeRange}
+                onValueChange={(value) => {
+                  setSelectedAgeRange(value);
+                  applyFilters();
+                }}
+                style={styles.picker}
+              >
+                <Picker.Item label="All Ages" value={null} />
+                <Picker.Item label="0 - 12 (Children)" value={[0, 12]} />
+                <Picker.Item label="13 - 19 (Teens)" value={[13, 19]} />
+                <Picker.Item label="20 - 35 (Young Adults)" value={[20, 35]} />
+                <Picker.Item label="36 - 60 (Adults)" value={[36, 60]} />
+                <Picker.Item label="60+ (Elderly)" value={[61, 120]} />
+              </Picker>
+            </View>
+          </View>
         </View>
 
         <View style={styles.section}>
@@ -348,9 +441,8 @@ const AdminScreen = () => {
               <Text style={styles.location}>{outbreak.location}</Text>
               <Text>Disease: {outbreak.predicted_disease}</Text>
               <Text>Cases: {outbreak.case_count}</Text>
-              {/* <Text>
-                Lat: {outbreak.latitude}, Lon: {outbreak.longitude}
-              </Text> */}
+              <Text>Age: {outbreak.age}</Text>
+              <Text>Gender: {outbreak.gender}</Text>
             </View>
           ))}
         </View>
@@ -380,6 +472,30 @@ const AdminScreen = () => {
                 keyExtractor={(l) => l}
                 renderItem={({ item }) => <Text>• {item}</Text>}
               />
+              <Text style={{ marginTop: 10, fontWeight: "600" }}>
+                Gender Breakdown:
+              </Text>
+              {Object.entries(selectedSlice?.genders || {}).map(
+                ([gender, count]) => (
+                  <Text key={gender}>
+                    • {gender}: {count}
+                  </Text>
+                )
+              )}
+
+              <Text style={{ marginTop: 10, fontWeight: "600" }}>
+                Age Range:
+              </Text>
+              <Text>
+                {(() => {
+                  const ages = selectedSlice?.ages || [];
+                  if (ages.length === 0) return "No data";
+                  const min = Math.min(...ages);
+                  const max = Math.max(...ages);
+                  return `${min} - ${max} years`;
+                })()}
+              </Text>
+
               <TouchableOpacity
                 onPress={() => setSelectedSlice(null)}
                 style={styles.modalClose}

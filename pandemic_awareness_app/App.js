@@ -14,6 +14,8 @@ import { useState, useEffect, useRef } from "react";
 import * as SplashScreen from "expo-splash-screen";
 import { NavigationContainer } from "@react-navigation/native";
 import AppNavigator from "./src/routes/AppNavigator";
+import toastConfig from "./src/shared/toastConfig";
+import Toast from "react-native-toast-message";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -164,7 +166,10 @@ export default function App() {
       {showOnboarding ? (
         <Onboarding onFinish={() => setShowOnboarding(false)} />
       ) : (
-        <AppNavigator />
+        <>
+          <AppNavigator />
+          <Toast config={toastConfig} />
+        </>
       )}
     </NavigationContainer>
   );
