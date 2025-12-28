@@ -54,11 +54,9 @@
     "expo-notifications": "~0.29.14",
     "expo-constants": "~17.0.8"
   },
-  {
   "overrides": {
     "on-headers": ">=1.1.0"
-  }
-},
+  },
   "devDependencies": {
     "@babel/core": "^7.26.10",
     "@babel/plugin-transform-private-methods": "^7.25.9",
